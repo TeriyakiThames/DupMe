@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DupMe - Netcentric Term Project
 
-## Getting Started
+# Getting Started
 
-First, run the development server:
+- `pnpm run dev`: Run both dev severs
+  - `localhost:4000` for backend
+  - `localhost:3000` for frontend
+- `pnpm --filter frontend dev`: Run frontend individually
+- `pnpm --filter backend start`: Run backend individually
+- `pnpm install`: Install dependencies
+- `pnpm -r list --depth 0`:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+# Tech Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Layer    | Technology   |
+| -------- | ------------ |
+| Root     | concurrently |
+|          | prettier     |
+| Backend  | express      |
+|          | mysql2       |
+|          | socket.io    |
+|          | typescript   |
+| Frontend | Next.js      |
+|          | shadcn/ui    |
+|          | Tailwind CSS |
+|          | ESLint       |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# Other Resources
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Figma](https://www.figma.com/design/GMSfDwtWiURNNXVpmhebSM/Netcentric-Piano-Project-UI?node-id=0-1&p=f&t=zNancFmFMe83gtkV-0)
+- [Figjam](https://www.figma.com/board/cru7Oddfo51gZVkNhdUvMT/Netcentric-Piano-Game---User-Journey?node-id=0-1&p=f&t=adYEMuAPmo0aTTH2-0)
+- [Google Docs](https://docs.google.com/document/d/1RqmxGdz8yYLikfYtDIdrhBLZcI_IjzyOfqWW24mYIrk/edit?tab=t.0#heading=h.qggk2lqo276j)
