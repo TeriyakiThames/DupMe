@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Inter } from "next/font/google";
+
+// create an Inter instance and bind it to a CSS variable
+const inter = Inter({
+  subsets: ["latin"], // use "latin-ext" if needed
+  variable: "--font-inter", // custom CSS variable name
+  display: "swap", // ensures text is visible during load
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,11 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+      <body className={inter.variable}>{children}</body>
     </html>
   );
 }

@@ -1,26 +1,92 @@
 @import "tailwindcss";
 
+/* ---------- Raw CSS variables (source of truth) ---------- */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  --lightCream: #fffff1;
+  --white: #ffffff;
+  --black: #000000;
+  --darkRed: #b85d5d;
+  --green: #5a8653;
+  --pressed: #d8fffe;
+  --easy: #80ab82;
+  --lightGrey: #e6e6e6;
+  --darkGrey: #7d7d7d;
+  --medium: #c6a100;
+  --red: #ff0000;
+  --error: #ffa9a9;
+  --darkBronze: #ac5010;
+  --silver: #cbcbcb;
+  --bronze: #ffb37e;
+  --gold: #fff1b1;
 }
 
+/* ---------- Tailwind v4 theme bridge (maps vars -> utilities) ---------- */
 @theme inline {
+  /* base colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* kebab-case color tokens become Tailwind classes like bg-light-cream, text-dark-red, etc. */
+  --color-light-cream: var(--lightCream);
+  --color-white: var(--white);
+  --color-black: var(--black);
+  --color-dark-red: var(--darkRed);
+  --color-green: var(--green);
+  --color-pressed: var(--pressed);
+  --color-easy: var(--easy);
+  --color-light-grey: var(--lightGrey);
+  --color-dark-grey: var(--darkGrey);
+  --color-medium: var(--medium);
+  --color-red: var(--red);
+  --color-error: var(--error);
+  --color-dark-bronze: var(--darkBronze);
+  --color-silver: var(--silver);
+  --color-bronze: var(--bronze);
+  --color-gold: var(--gold);
+
+  /* convenient semantic aliases (optional) */
+  --color-success: var(--green);
+  --color-warning: var(--medium);
+  --color-danger: var(--red);
+  --color-info: var(--pressed);
+
+  /* fonts (keep your Geist vars if you load them) */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
 }
 
+/* ---------- Dark mode overrides ---------- */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    /* tuned darker counterparts (adjust as you like) */
+    --lightCream: #1a1a14;
+    --white: #ffffff;
+    --black: #000000;
+    --darkRed: #9e4e4e;
+    --green: #6fb06a;
+    --pressed: #175a58; /* cyan-ish pressed but darker */
+    --easy: #5e8f60;
+    --lightGrey: #2a2a2a;
+    --darkGrey: #9aa0a6;
+    --medium: #b38f00;
+    --red: #ff5a5a;
+    --error: #ff9e9e;
+    --darkBronze: #8a3f0c;
+    --silver: #9aa0a6;
+    --bronze: #e39a68;
+    --gold: #e6d48a;
   }
 }
 
+/* ---------- Base styles ---------- */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
