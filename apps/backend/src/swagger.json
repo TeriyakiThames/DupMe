@@ -1,0 +1,146 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "DupMe Room Management API",
+    "version": "1.0.0",
+    "description": "API for managing temporary game rooms with Socket.IO integration"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/room": {
+      "post": {
+        "summary": "Create a new room",
+        "responses": {
+          "200": {
+            "description": "Room created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "roomId": { "type": "string" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to create room"
+          }
+        }
+      }
+    },
+    "/room/{roomId}": {
+      "get": {
+        "summary": "Get room information",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "room": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "userCount": { "type": "number" },
+                        "maxUsers": { "type": "number" },
+                        "createdAt": { "type": "string", "format": "date-time" },
+                        "lastActivity": { "type": "string", "format": "date-time" },
+                        "metadata": { "type": "object" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    },
+    "/rooms/stats": {
+      "get": {
+        "summary": "Get room statistics",
+        "responses": {
+          "200": {
+            "description": "Room statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "stats": {
+                      "type": "object",
+                      "properties": {
+                        "totalRooms": { "type": "number" },
+                        "activeRooms": { "type": "number" },
+                        "totalUsers": { "type": "number" },
+                        "emptyRooms": { "type": "number" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rooms": {
+      "get": {
+        "summary": "List all rooms",
+        "responses": {
+          "200": {
+            "description": "List of all rooms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "rooms": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "userCount": { "type": "number" },
+                          "maxUsers": { "type": "number" },
+                          "createdAt": { "type": "string", "format": "date-time" },
+                          "lastActivity": { "type": "string", "format": "date-time" }
+                        }
+                      }
+                    },
+                    "count": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
