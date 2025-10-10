@@ -5,5 +5,9 @@
 	},
 	"scripts": {
 		"dev": "concurrently \"pnpm --filter backend start\" \"pnpm --filter frontend dev\""
+	},
+	"dependencies": {
+		"@hookform/resolvers": "^5.2.2",
+		"zod": "^3.25.76"
 	}
 }
