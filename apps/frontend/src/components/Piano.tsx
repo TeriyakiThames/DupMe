@@ -51,14 +51,14 @@ const PianoKey: React.FC<{
     onMouseUp={() => !disabled && onUp(note)}
     onMouseLeave={() => !disabled && onUp(note)}
     className={classNames(
-      "relative h-48 rounded-lg border text-lg font-semibold transition-all",
+      "relative bg-white h-48 rounded-lg border text-lg font-semibold transition-all",
       // bigger spacing feel by adding side margins on the key itself
       "mx-1 sm:mx-2",
-      // base colors from your palette
-      "border-light-grey bg-light-cream hover:bg-pressed active:scale-[0.99]",
+      // base colors from your palettea
+      "border-light-grey bg-white hover:bg-pressed active:scale-[0.99]",
       // BLUE only while pressed
-      isActive && "!bg-blue-300",
-      disabled && "opacity-60 cursor-not-allowed"
+      isActive && "!bg-pressed",
+      disabled && "opacity-100 cursor-not-allowed"
     )}
   >
     {/* EASY overlay: persistent 1/2/3… numbers on the key (top center) */}
@@ -69,7 +69,7 @@ const PianoKey: React.FC<{
     )}
 
     {/* Note label on the key face */}
-    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-foreground">
+    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-black">
       {label ?? note}
     </span>
   </button>
@@ -139,7 +139,7 @@ const Piano: React.FC<PianoProps> = ({
   return (
     <div className="rounded-xl bg-black p-5">
       {/* Larger inter-key spacing */}
-      <div className="grid grid-cols-6 gap-6 bg-white p-2 sm:p-3">
+      <div className="grid grid-cols-6 gap-6 bg-black p-2 sm:p-3">
         {NOTE_LABELS.map((n) => {
           const isRemoteActive = livePressVisible && remoteActiveSet.has(n);
           const isActive = !!activeLocal[n] || isRemoteActive;
