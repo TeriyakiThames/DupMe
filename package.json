@@ -1,0 +1,13 @@
+{
+	"devDependencies": {
+		"concurrently": "^8.2.2",
+		"prettier": "^3.6.2"
+	},
+	"scripts": {
+		"dev": "concurrently \"pnpm --filter backend start\" \"pnpm --filter frontend dev\""
+	},
+	"dependencies": {
+		"socket.io-client": "^4.8.1",
+		"zustand": "^5.0.8"
+	}
+}
