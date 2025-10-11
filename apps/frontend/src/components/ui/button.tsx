@@ -22,7 +22,7 @@ const buttonVariants = cva(
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
         join: "bg-[#5a8653] text-white shadow hover:bg-[#4c7446]",      // Green for 'Join Game'
-        create: "bg-[#000000] text-white shadow hover:bg-[#171717]",        // Black for 'Create a room'
+        create: "bg-[#000000] text-white shadow hover:opacity-85",        // Black for 'Create a room'
         cancel: "bg-[#b85d5d] text-white shadow hover:bg-[#a45151]",       // Red for 'Cancel'
       },
       size: {
