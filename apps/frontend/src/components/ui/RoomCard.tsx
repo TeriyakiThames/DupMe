@@ -5,26 +5,14 @@ import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/Button"; // Assumes you have imported and modified this
 import { Input } from "@/components/ui/input";   // Assumes you have imported this
 
-export function ClientGameButtons() {
+export function RoomCard() {
   const router = useRouter();
-  const [roomId, setRoomId] = useState('');
+  const [roomId, setRoomId] = useState('1134');
 
-  const handleJoinGame = () => {
-    if (roomId.trim()) {
-      // Navigate to the dynamic lobby page with the room ID
-      console.log(`Navigating to join room: ${roomId}`);
-      // router.push(`/lobby/${roomId.trim()}`);
-    } else {
-      // In a real app, use a custom modal/toast instead of alert
-      console.error("Please enter a Room ID.");
-      alert("Please enter a Room ID."); 
-    }
-  };
-
-  const handleCreateRoom = () => {
-    console.log("Navigating to create room page.");
+  const handleCancel = () => {
+    console.log("Cancel create room page.");
     // Navigate to the separate 'Create a room' page
-    router.push('/create');
+    router.push('/classic');
   };
 
   return (
@@ -39,25 +27,18 @@ export function ClientGameButtons() {
           onChange={(e) => setRoomId(e.target.value)}
           // Custom styling to match the wireframe: white background, larger padding, specific border
           className="w-full py-2 px-4 h-10 text-lg border-2 border-gray-300 rounded-md bg-white placeholder:text-gray-500 focus:border-black"
+          readOnly
         />
       </div>
 
       {/* Buttons */}
       <div className="flex flex-col space-y-4">
         <Button
-          variant="join"
+          variant="cancel"
           className=""
-          onClick={handleJoinGame}
+          onClick={handleCancel}
         >
-          Join Game
-        </Button>
-
-        <Button
-          variant="create"
-          className=""
-          onClick={handleCreateRoom}
-        >
-          Create a room
+          Cancel
         </Button>
       </div>
     </div>
