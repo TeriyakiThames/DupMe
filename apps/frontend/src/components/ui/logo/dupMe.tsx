@@ -2,10 +2,9 @@ import React from "react";
 
 const LogoHeader = () => {
   return (
-    <a
-      href="/"
-      className="inline-flex items-center space-x-3 p-4 cursor-pointer transition duration-300 ease-in-out hover:opacity-80"
-      aria-label="Go to homepage"
+    <div
+      className="inline-flex items-center space-x-3 p-4"
+      aria-label="DupMe logo"
     >
       {/* Piano Icon */}
       <span className="text-5xl" role="img" aria-label="Piano keyboard icon">
@@ -19,7 +18,7 @@ const LogoHeader = () => {
       >
         DupMe
       </span>
-    </a>
+    </div>
   );
 };
 
