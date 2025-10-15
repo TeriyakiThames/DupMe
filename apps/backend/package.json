@@ -6,13 +6,18 @@
 		"start": "tsx src/server.ts"
 	},
 	"dependencies": {
+		"@types/node-cron": "^3.0.11",
+		"@types/uuid": "^11.0.0",
 		"cors": "^2.8.5",
 		"bcryptjs": "^2.4.3",
 		"dotenv": "^16.4.5",
 		"express": "^5.1.0",
 		"express-session": "^1.18.0",
 		"mysql2": "^3.15.1",
-		"socket.io": "^4.8.1"
+		"node-cron": "^4.2.1",
+		"socket.io": "^4.8.1",
+		"swagger-ui-express": "^5.0.1",
+		"uuid": "^13.0.0"
 	},
 	"devDependencies": {
 		"@types/cors": "^2.8.19",
@@ -20,6 +25,7 @@
 		"@types/express": "^5.0.3",
 		"@types/express-session": "^1.18.0",
 		"@types/node": "^24.6.2",
+		"@types/swagger-ui-express": "^4.1.8",
 		"tsx": "^4.20.6",
 		"typescript": "^5.9.3"
 	}
