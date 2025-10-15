@@ -17,7 +17,7 @@ export default function ClassicGamePage() {
       </div>
 
       {/* Main Content Column: Centered on the screen. */}
-      <div className="w-[550px] max-w-full flex flex-col items-center mt-12">
+      <div className="w-3/4 max-w-2xl flex flex-col items-center mt-12">
         
         <GameHeader
           title="Classic"
