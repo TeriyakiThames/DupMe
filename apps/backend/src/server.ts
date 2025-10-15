@@ -2,22 +2,15 @@ import express from "express";
 import http from "http";
 import session from "express-session";
 import dotenv from "dotenv";
-import { Server } from "socket.io";
 import { testConnection, initializeDatabase } from "./config/database";
 import apiRoutes from "./routes";
+import gameRoutes from "./routes/game";
 
 // load environment variables
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
 
 // middleware
 app.use(express.json({ limit: '10mb' }));
@@ -63,6 +56,7 @@ app.use(session({
 
 // API routes
 app.use('/api', apiRoutes);
+app.use('/api/game', gameRoutes)
 
 // root endpoint
 app.get("/", (req, res) => {
