@@ -1,9 +1,9 @@
 {
 	"name": "backend",
 	"version": "0.1.0",
-	"main": "src/index.ts",
+	"main": "src/server.ts",
 	"scripts": {
-		"start": "tsx src/index.ts"
+		"start": "tsx src/server.ts"
 	},
 	"dependencies": {
 		"cors": "^2.8.5",
