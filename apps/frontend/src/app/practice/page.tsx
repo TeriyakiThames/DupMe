@@ -9,10 +9,6 @@ export default function Page(){
     return (
      <div className="min-h-screen w-screen bg-gray-50 flex flex-col items-center p-8"> 
               
-              {/* 🛑 BACK BUTTON CONTAINER FIX 🛑 */}
-              {/* We make this container full width (w-full) relative to the screen. 
-                  We use absolute positioning to break it out of the flex centering 
-                  and position it relative to the top-left corner of the parent div. */}
               <div className="w-full absolute top-8 left-0 px-8"> 
                 <BackButton />
               </div>
