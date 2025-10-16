@@ -1,21 +1,9 @@
 import Image from "next/image";
-import { InputForm } from "@/components/ui/username/Main_username";
-import LogoHeader from "@/components/ui/logo/dupMe";
-import { Main } from "next/document";
-import Multiplayer from "@/components/ui/GameMode/multiplayer";
-import Practice from "@/components/ui/GameMode/practice";
-import {Table,TableHeader,
-  TableBody,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableCaption,} from "@/components/ui/leaderboard/table";
+
 export default function Home() {
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-    
         <Image
           className="dark:invert"
           src="/next.svg"
@@ -36,7 +24,6 @@ export default function Home() {
             Save and see your changes instantly.
           </li>
         </ol>
-
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
@@ -111,7 +98,6 @@ export default function Home() {
           Go to nextjs.org →
         </a>
       </footer>
-      b
     </div>
   );
 }
