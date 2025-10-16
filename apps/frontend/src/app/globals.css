@@ -58,7 +58,7 @@
   --font-mono: var(--font-geist-mono), monospace;
 }
 
- /* ---------- Dark mode overrides ---------- */
+/* ---------- Dark mode overrides ---------- */
 @media (prefers-color-scheme: light) {
   :root {
     --background: #0a0a0a;
