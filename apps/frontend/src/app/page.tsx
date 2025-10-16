@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import LogoHeader from '@/components/ui/logo/dupMe';
+import { Redirect } from 'next';
 
 export default function HomePage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
