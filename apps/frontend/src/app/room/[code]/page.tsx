@@ -37,14 +37,13 @@ export default function GamePage() {
     // recordedPattern,
   } = useMockGame(roomId, me, opponent);
 
-  // For now, we’ll simulate an empty remote-press feed.
-  // When sockets are live, replace with notes reported by the opponent’s `note:down/up`.
-  const remoteActiveNotes: Note[] = []; // ← wire to socket later
+  // ************* When sockets are live, replace with notes reported by the opponent’s `note:down/up`.
+  const remoteActiveNotes: Note[] = []; // ← wire to socket later *************
 
   // EASY overlay: show order numbers to the replicating player.
   // If you expose a `recordedPattern` array from `useMockGame` (the creator’s final sequence),
   // build the overlay map here. For now, we’ll just leave it null.
-  const recordedPattern: Note[] = []; // ← replace with hook/sockets later
+  const recordedPattern: Note[] = []; //***************** */ ← replace with hook/sockets later
   const orderOverlay = useMemo(() => {
     if (mode !== "EASY") return null;
     // Show order only when *replicating* (not while someone is creating).
