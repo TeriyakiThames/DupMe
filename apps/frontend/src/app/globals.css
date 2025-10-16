@@ -59,7 +59,11 @@
 }
 
 /* ---------- Dark mode overrides ---------- */
+<<<<<<< HEAD
 @media (prefers-color-scheme: dark) {
+=======
+@media (prefers-color-scheme: light) {
+>>>>>>> origin/FE-Sachhyam
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
