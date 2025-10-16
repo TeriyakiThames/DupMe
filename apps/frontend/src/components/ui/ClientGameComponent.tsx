@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/Button"; // Assumes you have imported and modified this
+import { Button } from "@/components/ui/button"; // Assumes you have imported and modified this
 import { Input } from "@/components/ui/input";   // Assumes you have imported this
 
 export function ClientGameButtons() {
