@@ -159,6 +159,97 @@ export const gameController = {
 	},
 
 	/**
+	 * GET /api/game/getGameState/:roomId
+	 * Path param: roomId
+	 */
+	async getGameState(req: Request, res: Response) {
+		try {
+			const { roomId } = req.params;
+
+			if (!roomId) {
+				return res.status(400).json({
+					success: false,
+					error: "roomId is required",
+				});
+			}
+
+			const state = await gameService.getGameState(roomId);
+			if (!state) {
+				return res.status(404).json({
+					success: false,
+					error: `Game state not found for room ${roomId}`,
+				});
+			}
+
+			return res.status(200).json({ success: true, gameState: state });
+		} catch (error) {
+			console.error("Error in getGameState:", error);
+			return res.status(500).json({
+				success: false,
+				error: "Internal server error",
+			});
+		}
+	},
+
+	/**
+	 * GET /api/game/getPlayerPoints/:username
+	 * Path param: username
+	 */
+	async getPlayerPoints(req: Request, res: Response) {
+		try {
+			const { username } = req.params;
+
+			if (!username) {
+				return res.status(400).json({
+					success: false,
+					error: "username is required",
+				});
+			}
+
+			const points = await gameService.getPlayerPoints(username);
+			return res.status(200).json({ success: true, username, points });
+		} catch (error) {
+			console.error("Error in getPlayerPoints:", error);
+			return res.status(500).json({
+				success: false,
+				error: "Internal server error",
+			});
+		}
+	},
+
+	/**
+	 * GET /api/game/getAllGameStates
+	 */
+	async getAllGameStates(req: Request, res: Response) {
+		try {
+			const states = await gameService.getAllGameStates();
+			return res.status(200).json({ success: true, gameStates: states });
+		} catch (error) {
+			console.error("Error in getAllGameStates:", error);
+			return res.status(500).json({
+				success: false,
+				error: "Internal server error",
+			});
+		}
+	},
+
+	/**
+	 * GET /api/game/randomPattern
+	 */
+	async getRandomPattern(req: Request, res: Response) {
+		try {
+			const result = await gameService.getRandomPattern();
+			return res.status(200).json(result);
+		} catch (error) {
+			console.error("Error in getRandomPattern:", error);
+			return res.status(500).json({
+				success: false,
+				error: "Internal server error",
+			});
+		}
+	},
+
+	/**
 	 * POST /api/game/saveMatchResult
 	 * Body: { roomId: string, p1: string, p2: string, p1Score: number, p2Score: number, winner: string }
 	 */

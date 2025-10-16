@@ -20,11 +20,19 @@ router.post("/startTurn", gameController.startTurn);
 router.post("/savePattern", gameController.savePattern);
 router.post("/checkPattern", gameController.checkPattern);
 
+// Practise mode
+router.get("/randomPattern", gameController.getRandomPattern);
+
 // Results
 router.post("/saveMatchResult", gameController.saveMatchResult);
 router.post("/endGame", gameController.endGame);
 
 // Reset
 router.post("/resetGame", gameController.resetGame);
+
+// Get general info
+router.get("/getGameState/:roomId", gameController.getGameState);
+router.get("/getPlayerPoints/:username", gameController.getPlayerPoints);
+router.get("/getAllGameStates", gameController.getAllGameStates);
 
 export default router;

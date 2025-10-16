@@ -1,14 +1,11 @@
-// In-memory implementation for DupMe Game Service
-// Replace with database calls (MongoDB, PostgreSQL, etc.) for production
-
-type Player = { userName: string; points: number };
+import { User } from "../types/user";
 
 interface GameState {
 	roomId: string;
-	players: Player[];
+	players: User[];
 	currentPattern: string[];
 	patternIndex: number;
-	firstPlayer?: Player;
+	firstPlayer?: User;
 	scores: Record<string, number>;
 	turnHistory: Array<{
 		turnId: string;
@@ -17,24 +14,35 @@ interface GameState {
 	}>;
 }
 
-// In-memory storage (replace with database in production)
 const gameStates: Map<string, GameState> = new Map();
+// Map of username -> points for current match only
 const playerPoints: Map<string, number> = new Map();
+
+// Generate a random pattern of 10 keys from C, D, E, F, G, A
+function randomPattern(): string[] {
+	const keys = ["C", "D", "E", "F", "G", "A"];
+	const pattern: string[] = [];
+	for (let i = 0; i < 10; i++) {
+		const randomKey = keys[Math.floor(Math.random() * keys.length)];
+		pattern.push(randomKey);
+	}
+	return pattern;
+}
 
 export const gameService = {
 	/** PATCH /increasePoint */
-	async increasePoint(userName: string, points: number) {
-		const currentPoints = playerPoints.get(userName) || 0;
+	async increasePoint(username: string, points: number) {
+		const currentPoints = playerPoints.get(username) || 0;
 		const newPoints = currentPoints + points;
-		playerPoints.set(userName, newPoints);
+		playerPoints.set(username, newPoints);
 
 		console.log(
-			`✅ increasePoint: ${userName} +${points} (total: ${newPoints})`
+			`✅ increasePoint: ${username} +${points} (total: ${newPoints})`
 		);
 
 		return {
 			success: true,
-			userName,
+			username,
 			previousPoints: currentPoints,
 			addedPoints: points,
 			newPoints,
@@ -42,18 +50,18 @@ export const gameService = {
 	},
 
 	/** PATCH /decreasePoint */
-	async decreasePoint(userName: string, points: number) {
-		const currentPoints = playerPoints.get(userName) || 0;
+	async decreasePoint(username: string, points: number) {
+		const currentPoints = playerPoints.get(username) || 0;
 		const newPoints = Math.max(0, currentPoints - points); // Prevent negative points
-		playerPoints.set(userName, newPoints);
+		playerPoints.set(username, newPoints);
 
 		console.log(
-			`✅ decreasePoint: ${userName} -${points} (total: ${newPoints})`
+			`✅ decreasePoint: ${username} -${points} (total: ${newPoints})`
 		);
 
 		return {
 			success: true,
-			userName,
+			username,
 			previousPoints: currentPoints,
 			deductedPoints: points,
 			newPoints,
@@ -61,12 +69,10 @@ export const gameService = {
 	},
 
 	/** POST /startGame */
-	async startGame(roomId: string, players: Player[]) {
-		// Initialize player points if not exists
+	async startGame(roomId: string, players: User[]) {
+		// Initialize player points if not exists (start at 0 for this match)
 		players.forEach((player) => {
-			if (!playerPoints.has(player.userName)) {
-				playerPoints.set(player.userName, player.points);
-			}
+			playerPoints.set(player.username, 0); // Always reset to 0
 		});
 
 		// Randomize first player
@@ -84,23 +90,23 @@ export const gameService = {
 		};
 
 		players.forEach((p) => {
-			gameState.scores[p.userName] = 0;
+			gameState.scores[p.username] = 0;
 		});
 
 		gameStates.set(roomId, gameState);
 
 		console.log(
-			`🎮 Game started in room ${roomId}. First player: ${firstPlayer.userName}`
+			`🎮 Game started in room ${roomId}. First player: ${firstPlayer.username}`
 		);
 
 		return {
 			success: true,
 			roomId,
 			firstPlayer,
-			message: `Game started! ${firstPlayer.userName} goes first.`,
+			message: `Game started! ${firstPlayer.username} goes first.`,
 			players: players.map((p) => ({
-				userName: p.userName,
-				points: playerPoints.get(p.userName) || 0,
+				username: p.username,
+				points: playerPoints.get(p.username) || 0,
 			})),
 		};
 	},
@@ -146,38 +152,84 @@ export const gameService = {
 	},
 
 	/** POST /checkPattern */
-	async checkPattern(roomId: string, turnId: string, key: string) {
+	async checkPattern(
+		roomId: string,
+		turnId: string,
+		keyOrSequence: string | string[]
+	) {
 		const gameState = gameStates.get(roomId);
 
 		if (!gameState) {
 			throw new Error(`Game state not found for room ${roomId}`);
 		}
 
-		const expected = gameState.currentPattern[gameState.patternIndex];
-		const correct = key === expected;
+		// Handle both single key and sequence input
+		const inputSequence = Array.isArray(keyOrSequence)
+			? keyOrSequence
+			: [keyOrSequence];
 
-		if (correct) {
-			gameState.patternIndex++;
+		// Check if the input sequence matches the expected pattern starting from patternIndex
+		let allCorrect = true;
+		let lastCheckedIndex = gameState.patternIndex;
+
+		for (let i = 0; i < inputSequence.length; i++) {
+			const expectedIndex = gameState.patternIndex + i;
+
+			// Check if we're exceeding the pattern length
+			if (expectedIndex >= gameState.currentPattern.length) {
+				allCorrect = false;
+				break;
+			}
+
+			const expected = gameState.currentPattern[expectedIndex];
+			const inputKey = inputSequence[i];
+
+			if (inputKey !== expected) {
+				allCorrect = false;
+				break;
+			}
+
+			lastCheckedIndex = expectedIndex + 1;
+		}
+
+		// Update pattern index only if all keys were correct
+		if (allCorrect) {
+			gameState.patternIndex = lastCheckedIndex;
 		}
 
 		const done = gameState.patternIndex === gameState.currentPattern.length;
+		const expectedNext = gameState.currentPattern[gameState.patternIndex];
 
 		console.log(
-			`🔍 Pattern check: ${key} ${correct ? "✅" : "❌"} (expected: ${expected}, progress: ${gameState.patternIndex}/${gameState.currentPattern.length})`
+			`🔍 Pattern check: ${Array.isArray(keyOrSequence) ? `[${keyOrSequence.join(", ")}]` : keyOrSequence} ${allCorrect ? "✅" : "❌"} (progress: ${gameState.patternIndex}/${gameState.currentPattern.length})`
 		);
 
 		return {
 			success: true,
-			correct,
+			correct: allCorrect,
 			nextIndex: gameState.patternIndex,
 			done,
 			totalLength: gameState.currentPattern.length,
-			expectedKey: expected,
-			message: correct
+			expectedKey: expectedNext,
+			message: allCorrect
 				? done
 					? "Pattern completed!"
-					: "Correct key!"
-				: "Incorrect key!",
+					: "Correct key(s)!"
+				: "Incorrect key(s)!",
+		};
+	},
+
+	/** GET /randomPattern */
+	async getRandomPattern() {
+		const pattern = randomPattern();
+
+		console.log(`🎲 Generated random pattern: [${pattern.join(", ")}]`);
+
+		return {
+			success: true,
+			pattern,
+			length: pattern.length,
+			message: `Random pattern of ${pattern.length} keys generated.`,
 		};
 	},
 
@@ -252,9 +304,13 @@ export const gameService = {
 			gameState.currentPattern = [];
 			gameState.patternIndex = 0;
 			gameState.turnHistory = [];
-			// Optionally reset scores
+			// Reset match scores to 0
 			Object.keys(gameState.scores).forEach((key) => {
 				gameState.scores[key] = 0;
+			});
+			// Reset match points to 0
+			gameState.players.forEach((player) => {
+				playerPoints.set(player.username, 0);
 			});
 		}
 
@@ -273,14 +329,12 @@ export const gameService = {
 		return gameState || null;
 	},
 
-	// Helper method to get player points
-	async getPlayerPoints(userName: string) {
-		return playerPoints.get(userName) || 0;
+	// Helper method to get player points for current match
+	async getPlayerPoints(username: string) {
+		return playerPoints.get(username) || 0;
 	},
 
-	/**
-	 * NEW: Return all game states as a plain object/array suitable for JSON serialization.
-	 */
+	// Return all game states as a plain object/array suitable for JSON serialization.
 	async getAllGameStates() {
 		const arr = Array.from(gameStates.values()).map((gs) => ({
 			...gs,
@@ -292,16 +346,5 @@ export const gameService = {
 			})),
 		}));
 		return arr;
-	},
-
-	/**
-	 * NEW: Return all player points as an object.
-	 */
-	async getAllPlayerPoints() {
-		const obj: Record<string, number> = {};
-		for (const [k, v] of playerPoints.entries()) {
-			obj[k] = v;
-		}
-		return obj;
 	},
 };
