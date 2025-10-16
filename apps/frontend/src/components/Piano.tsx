@@ -51,7 +51,7 @@ const PianoKey: React.FC<{
     onMouseUp={() => !disabled && onUp(note)}
     onMouseLeave={() => !disabled && onUp(note)}
     className={classNames(
-      "relative bg-white h-48 rounded-lg border text-lg font-semibold transition-all",
+      "relative bg-white h-100 rounded-lg border text-lg font-semibold transition-all",
       // bigger spacing feel by adding side margins on the key itself
       "mx-1 sm:mx-2",
       // base colors from your palettea
