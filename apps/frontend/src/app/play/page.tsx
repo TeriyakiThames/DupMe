@@ -31,7 +31,7 @@ export default function PlayPage() {
             title="Multiplayer"
             description="play against real people and test out your skill"
             icon="👥"
-            href="/multiplayer"
+            href="/classic"
             bgColor="bg-black"
             textColor="text-white"
           />

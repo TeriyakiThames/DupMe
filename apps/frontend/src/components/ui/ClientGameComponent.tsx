@@ -13,7 +13,8 @@ export function ClientGameButtons() {
     if (roomId.trim()) {
       // Navigate to the dynamic lobby page with the room ID
       console.log(`Navigating to join room: ${roomId}`);
-      // router.push(`/lobby/${roomId.trim()}`);
+      // router.push(`/testpage/${roomId.trim()}`);
+      router.push(`/testpage`);
     } else {
       // In a real app, use a custom modal/toast instead of alert
       console.error("Please enter a Room ID.");
