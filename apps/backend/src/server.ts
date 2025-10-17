@@ -1,19 +1,17 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import { RoomManager } from "./services/roomService";
-import { SocketService } from "./services/socketService";
-import { initializeRoomRoutes } from "./routes/rooms";
+import { ServerManager } from "./managers/serverManager";
+import { SocketIOService } from "./io";
 import swaggerUi from "swagger-ui-express";
 import * as swaggerDocument from "./swagger.json";
 import session from "express-session";
 import dotenv from "dotenv";
 import { testConnection, initializeDatabase } from "./config/database";
 import apiRoutes from "./routes";
-import gameRoutes from "./routes/game";
 
-// Initialize room manager with custom options
-const roomManager = new RoomManager({
+// Initialize server manager with custom options
+const serverManager = new ServerManager({
 	cleanupInterval: '*/2 * * * *', // Every 2 minutes for more frequent cleanup
 	maxInactiveTime: 60, // 60 minutes before inactive rooms are deleted
 	maxRooms: 500, // Maximum 500 concurrent rooms
@@ -36,7 +34,7 @@ const io = new Server(server, {
 });
 
 // Initialize socket service
-new SocketService(io, roomManager);
+new SocketIOService(io, serverManager);
 
 // middleware
 app.use(express.json({ limit: '10mb' }));
@@ -82,10 +80,6 @@ app.use(session({
 
 // API routes
 app.use('/api', apiRoutes);
-app.use('/api/game', gameRoutes);
-
-// Room routes
-app.use('/', initializeRoomRoutes(roomManager));
 
 // Swagger documentation
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -140,7 +134,7 @@ startServer();
 // Graceful shutdown
 process.on('SIGINT', () => {
 	console.log('\n🛑 Shutting down server...');
-	roomManager.shutdown();
+	serverManager.shutdown();
 	server.close(() => {
 		console.log('✅ Server shutdown complete');
 		process.exit(0);
@@ -149,7 +143,7 @@ process.on('SIGINT', () => {
 
 process.on('SIGTERM', () => {
 	console.log('\n🛑 Received SIGTERM, shutting down gracefully...');
-	roomManager.shutdown();
+	serverManager.shutdown();
 	server.close(() => {
 		console.log('✅ Server shutdown complete');
 		process.exit(0);

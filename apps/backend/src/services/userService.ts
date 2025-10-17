@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { UserModel } from '../models/User';
-import { User, CreateUserData, UpdateUserData, LoginCredentials, UserSession, UserProfile } from '../types/user';
+import { User, CreateUserData, UpdateUserData, LoginCredentials,  UserProfile } from '../types/user';
 
 export class UserService {
   private static readonly SALT_ROUNDS = 12;
@@ -16,9 +16,14 @@ export class UserService {
   }
 
   // convert User to UserSession (remove sensitive data)
-  private static toUserSession(user: User): UserSession {
+  private static toUserSession(user: User): UserProfile {
     return {
-      id: user.id
+      id: user.id,
+      username: user.username,
+      win_count: user.win_count,
+      loss_count: user.loss_count,
+      draw_count: user.draw_count,
+      is_active: user.is_active
     };
   }
 
@@ -34,7 +39,7 @@ export class UserService {
   }
 
   // register a new user
-  static async register(userData: CreateUserData): Promise<{ success: boolean; message: string; user?: UserSession }> {
+  static async register(userData: CreateUserData): Promise<{ success: boolean; message: string; user?: UserProfile }> {
     try {
       // validate input
       if (!userData.username || !userData.password) {
@@ -78,7 +83,7 @@ export class UserService {
   }
 
   // login user
-  static async login(credentials: LoginCredentials): Promise<{ success: boolean; message: string; user?: UserSession }> {
+  static async login(credentials: LoginCredentials): Promise<{ success: boolean; message: string; user?: UserProfile }> {
     try {
       // validate input
       if (!credentials.username || !credentials.password) {

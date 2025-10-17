@@ -49,13 +49,18 @@ export class UserController {
       }
 
       const updateData: UpdateUserData = req.body;
-
       const result = await UserService.updateUser(req.user.id, updateData);
 
       if (result.success) {
         // Update session with new user data
         if (req.session && result.user) {
-          req.session.user = { id: result.user.id };
+          req.session.user = { id: result.user.id,
+                              username: result.user.username,
+                              win_count: result.user.win_count,
+                              loss_count: result.user.loss_count,
+                              draw_count: result.user.draw_count,
+                              is_active: result.user.is_active
+           };
         }
 
         res.status(200).json({
@@ -123,15 +128,6 @@ export class UserController {
   static async getUserById(req: Request, res: Response): Promise<void> {
     try {
       const userId = parseInt(req.params.id);
-
-      if (isNaN(userId)) {
-        res.status(400).json({
-          success: false,
-          message: 'Invalid user ID.',
-        });
-        return;
-      }
-
       const result = await UserService.getUserById(userId);
 
       if (result.success) {
@@ -197,79 +193,6 @@ export class UserController {
     }
   }
 
-  // no admin middleware yet
-
-  // update user by ID (admin function)
-  // static async updateUser(req: Request, res: Response): Promise<void> {
-  //   try {
-  //     const userId = parseInt(req.params.id);
-
-  //     if (isNaN(userId)) {
-  //       res.status(400).json({
-  //         success: false,
-  //         message: 'Invalid user ID.',
-  //       });
-  //       return;
-  //     }
-
-  //     const updateData: UpdateUserData = req.body;
-  //     const result = await UserService.updateUser(userId, updateData);
-
-  //     if (result.success) {
-  //       res.status(200).json({
-  //         success: true,
-  //         message: result.message,
-  //         user: result.user,
-  //       });
-  //     } else {
-  //       res.status(400).json({
-  //         success: false,
-  //         message: result.message,
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error('Update user controller error:', error);
-  //     res.status(500).json({
-  //       success: false,
-  //       message: 'Internal server error.',
-  //     });
-  //   }
-  // }
-
-  // delete user by ID (admin function)
-  // static async deleteUser(req: Request, res: Response): Promise<void> {
-  //   try {
-  //     const userId = parseInt(req.params.id);
-
-  //     if (isNaN(userId)) {
-  //       res.status(400).json({
-  //         success: false,
-  //         message: 'Invalid user ID.',
-  //       });
-  //       return;
-  //     }
-
-  //     const result = await UserService.deleteUser(userId);
-
-  //     if (result.success) {
-  //       res.status(200).json({
-  //         success: true,
-  //         message: result.message,
-  //       });
-  //     } else {
-  //       res.status(404).json({
-  //         success: false,
-  //         message: result.message,
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error('Delete user controller error:', error);
-  //     res.status(500).json({
-  //       success: false,
-  //       message: 'Internal server error.',
-  //     });
-  //   }
-  // }
 
   // increment win count for current user
   static async incrementWin(req: Request, res: Response): Promise<void> {

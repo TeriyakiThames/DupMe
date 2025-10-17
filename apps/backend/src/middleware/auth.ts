@@ -1,14 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserSession } from '../types/user';
+import { UserProfile } from '../types/user';
 
-// extend express request type to include user session
+// extend express request type to include user session and session
 declare global {
   namespace Express {
-    interface Request {
-      user?: UserSession;
+    interface Request { 
+      user?: UserProfile;
     }
   }
 }
+
 
 // check if user is authenticated
 export const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
@@ -66,7 +67,7 @@ export const validateSession = (req: Request, res: Response, next: NextFunction)
 
 // check if user owns the resource (for user-specific operations)
 export const requireOwnership = (req: Request, res: Response, next: NextFunction): void => {
-  const userId = parseInt(req.params.userId || req.params.id);
+  const userId = parseInt(req.params.id);
   
   if (!req.user) {
     res.status(401).json({ 

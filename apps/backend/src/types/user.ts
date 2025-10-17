@@ -27,9 +27,7 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface UserSession {
-  id: number;
-}
+
 
 export interface UserProfile {
   id: number;
@@ -43,7 +41,7 @@ export interface UserProfile {
 // extends express session interface
 declare module 'express-session' {
   interface SessionData {
-    user?: UserSession;
+    user?: UserProfile;
     isAuthenticated?: boolean;
   }
 }
