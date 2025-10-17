@@ -30,7 +30,7 @@ const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
   let totalPtsBg = 'bg-gray-200'; // Default for non-top ranks
 
   if (playerRank === 1) {
-    rankSpecificClasses = 'bg-blue-100 font-semibold rounded-lg'; // Light blue
+    rankSpecificClasses = 'bg-blue-100 font-semibold rounded-lg '; // Light blue
     medalIcon = <span className="text-2xl mr-1">🥇</span>;
     totalPtsBg = 'bg-blue-300 text-blue-900 font-bold rounded-md px-3 py-1';
   } else if (playerRank === 2) {

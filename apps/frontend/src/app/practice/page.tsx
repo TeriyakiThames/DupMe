@@ -3,10 +3,14 @@
 import React from "react"; 
 import { BackButton } from "@/components/ui/BackButton";
 import { GameHeader } from "@/components/ui/GameHeader";
-import { GameMode }from "@/components/ui/GameMode";    
+import { GameMode }from "@/components/ui/GameMode";
+import { useRouter } from 'next/navigation';      
 
 export default function Page(){
+    const router = useRouter();
+
     return (
+      
      <div className="min-h-screen w-screen bg-gray-50 flex flex-col items-center p-8"> 
               
               <div className="w-full absolute top-8 left-0 px-8"> 
@@ -32,7 +36,7 @@ export default function Page(){
                         emoji="😌"
                         descriptionLines={['Hear the sound,', 'See the notes,', 'No need to remember']}
                         color="green"
-                        onClick={() => console.log('Easy mode selected!')}
+                        onClick={() => router.push(`/testpage`)}
                     />
 
                     <GameMode
@@ -40,7 +44,7 @@ export default function Page(){
                         emoji="😏"
                         descriptionLines={['Hear the sound,', 'See the notes,', 'Please do remember!']}
                         color="yellow"
-                        onClick={() => alert('Medium mode selected!')}
+                        onClick={() => router.push(`/testpage`)}
                     />
 
                     <GameMode
@@ -48,7 +52,7 @@ export default function Page(){
                         emoji="💀"
                         descriptionLines={['Pitch Perfect!']}
                         color="red"
-                        onClick={() => alert('Hard mode selected!')}
+                        onClick={() => router.push(`/testpage`)}
                     />
                   </div>
                 </div>

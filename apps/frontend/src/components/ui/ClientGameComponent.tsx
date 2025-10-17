@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button"; // Assumes you have imported and modified this
 import { Input } from "@/components/ui/input";   // Assumes you have imported this
 
+
 export function ClientGameButtons() {
   const router = useRouter();
   const [roomId, setRoomId] = useState('');
@@ -13,11 +14,10 @@ export function ClientGameButtons() {
     if (roomId.trim()) {
       // Navigate to the dynamic lobby page with the room ID
       console.log(`Navigating to join room: ${roomId}`);
-      // router.push(`/testpage/${roomId.trim()}`);
+      // router.push(`/room/${roomId.trim()}`);
       router.push(`/testpage`);
     } else {
       // In a real app, use a custom modal/toast instead of alert
-      console.error("Please enter a Room ID.");
       alert("Please enter a Room ID."); 
     }
   };
@@ -25,7 +25,7 @@ export function ClientGameButtons() {
   const handleCreateRoom = () => {
     console.log("Navigating to create room page.");
     // Navigate to the separate 'Create a room' page
-    router.push('/create');
+    router.push('/multiplayer');
   };
 
   return (
