@@ -2,14 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useSocket } from '@/hooks/useSocket';
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { useAuth } from '@/hooks/useAuth';
+import { ClientGameComponentProps } from '@/types/components';
 
-export function ClientGameButtons() {
+export function ClientGameButtons({
+  joinRoom,
+  getRoomInfo,
+  isConnected,
+}: ClientGameComponentProps) {
   const router = useRouter();
-  const { joinRoom, getRoomInfo, isConnected } = useSocket();
   const { isAuthenticated, user } = useAuth();
   const [roomId, setRoomId] = useState('');
   const [isLoading, setIsLoading] = useState(false);

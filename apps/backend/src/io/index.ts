@@ -2,8 +2,8 @@ import { Server as SocketIOServer } from 'socket.io';
 import { ServerManager } from '../managers/serverManager';
 import { handleConnection } from './events/connection';
 import { handleDisconnection } from './events/disconnect';
-import { setupRoomEvents } from './events/room';
-import { setupGameEvents } from './events/game';
+import { setupRoomEvents } from './events/server';
+import { setupGameEvents } from './events/room';
 import { SocketWithUser } from '../types/socket';
 
 export class SocketIOService {
@@ -13,6 +13,7 @@ export class SocketIOService {
 	constructor(io: SocketIOServer, serverManager: ServerManager) {
 		this.io = io;
 		this.serverManager = serverManager;
+		
 		this.setupEventHandlers();
 		console.log('🔌 Socket.IO service initialized');
 	}
@@ -20,27 +21,35 @@ export class SocketIOService {
 	private setupEventHandlers(): void {
 		this.io.on('connection', (socket: SocketWithUser) => {
 			console.log(`🔗 Client connected: ${socket.id}`);
+			
+			// Store userProfile from handshake auth data
+            socket.userProfile = socket.handshake.auth.userProfile;
+			if (socket.userProfile) {
+				// Handle initial connection
+				handleConnection(socket, this.serverManager);
 
-			// Handle initial connection
-			handleConnection(socket, this.serverManager);
+				// Setup room events
+				setupRoomEvents(socket, this.serverManager, this.io);
 
-			// Setup room events
-			setupRoomEvents(socket, this.serverManager, this.io);
+				// Setup game events
+				setupGameEvents(socket, this.serverManager, this.io);
+				
+				// Handle disconnection
+				socket.on('disconnect', (reason) => {
+					console.log(`🔌 Client disconnected: ${socket.id}, reason: ${reason}`);
+					// Pass userProfile if available
+					handleDisconnection(socket, this.serverManager, this.io, socket.userProfile);
+				});
 
-			// Setup game events
-			setupGameEvents(socket, this.serverManager, this.io);
-
-			// Handle disconnection
-			socket.on('disconnect', (reason) => {
-				console.log(`🔌 Client disconnected: ${socket.id}, reason: ${reason}`);
-				// Pass userProfile if available
-				handleDisconnection(socket, this.serverManager, this.io, socket.userProfile);
-			});
-
-			// Handle errors
-			socket.on('error', (error) => {
-				console.error(`❌ Socket error for ${socket.id}:`, error);
-			});
+				// Handle errors
+				socket.on('error', (error) => {
+					console.error(`❌ Socket error for ${socket.id}:`, error);
+				});
+			} else {
+				console.warn(`⚠️ Socket ${socket.id} missing userProfile in handshake auth, disconnecting`);
+				socket.emit('error', { message: 'Authentication required' });
+				socket.disconnect();
+			}
 		});
 	}
 

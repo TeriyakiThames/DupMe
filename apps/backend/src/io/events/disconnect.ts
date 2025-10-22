@@ -1,7 +1,7 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { SocketWithUser } from '../../types/socket';
 import { ServerManager } from '../../managers/serverManager';
-import { UserProfile } from '../../types/user';
+import { UserProfile } from '../../types/auth';
 
 /**
  * Handle socket disconnection and cleanup
@@ -47,6 +47,7 @@ export function handleDisconnection(
 			socket.leave(socket.currentRoomId);
 		}
 
+		serverManager.removeOnlineUser(socket.userProfile?.username as string);
 		console.log(`👋 Socket ${socket.id} cleanup completed`);
 
 	} catch (error) {

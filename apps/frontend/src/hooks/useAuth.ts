@@ -1,239 +1,93 @@
-'use client';
+// useAuth.ts
+// React hook for authentication state and actions
 
 import { useState, useEffect, useCallback } from 'react';
-import { authClient } from '../lib/authClient';
-import { UserProfile, 
-        CreateUserData, 
-        LoginCredentials, 
-        AuthResponse, 
-        AuthState, 
-        UseAuthReturn } from '../types/user';
+import * as authClient from '../lib/authClient';
+import { UserProfile } from '../types/auth';
 
 
-export function useAuth(options: {
-  autoCheck?: boolean;
-  onAuthChange?: (user: UserProfile | null) => void;
-} = {}): UseAuthReturn {
-  const { autoCheck = true, onAuthChange } = options;
+export function useAuth() {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [topUsers, setTopUsers] = useState<UserProfile[]>([]);
 
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-    error: null,
-  });
+  // On mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      // Set user
+      const res = await authClient.getProfile();
+      if (res.success) {
+        setUser(res.user as UserProfile);
+      }
+     
+    };
 
-  // Update authentication state
-  const updateAuthState = useCallback((
-    user: UserProfile | null,
-    isLoading: boolean = false,
-    error: string | null = null
-  ) => {
-    const isAuthenticated = user !== null;
-    
-    setState({
-      user,
-      isAuthenticated,
-      isLoading,
-      error,
-    });
+    const fetchLeaderBoard = async () => {
+      // Fetch leaderboard
+      const leaderboardRes = await authClient.getLeaderBoard();
+      if (leaderboardRes.success && leaderboardRes.topUsers) {
+        setTopUsers(leaderboardRes.topUsers.map(
+          (u: any) => ({
+            ...u,
+            total_points: u.win_count * 3 + u.draw_count * 1 - u.loss_count * 1
+          })
+        )); 
+      }
+    };
 
-    // Call auth change callback if provided
-    if (onAuthChange) {
-      onAuthChange(user);
+    fetchProfile();
+    fetchLeaderBoard();
+
+    return () => {
+      // Cleanup if needed
     }
-  }, [onAuthChange]);
-
-  // Clear error state
-  const clearError = useCallback(() => {
-    setState(prev => ({ ...prev, error: null }));
   }, []);
 
-  // Check authentication status
-  const checkAuth = useCallback(async () => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const result = await authClient.checkAuth();
-      
-      if (result.success && result.user) {
-        updateAuthState(result.user, false);
-      } else {
-        updateAuthState(null, false);
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      updateAuthState(null, false, 'Failed to check authentication status');
-    }
-  }, [updateAuthState]);
+  const login = useCallback(async (username: string, password: string) => {
+    setLoading(true);
+    setError(null);
 
-  // Login function
-  const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResponse<UserProfile>> => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const result = await authClient.login(credentials);
-      
-      if (result.success && result.user) {
-        updateAuthState(result.user, false);
-      } else {
-        updateAuthState(null, false, result.message || 'Login failed');
-      }
-      
-      return result;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
-      updateAuthState(null, false, errorMessage);
-      
-      return {
-        success: false,
-        message: errorMessage,
-        error: errorMessage,
-      };
-    }
-  }, [updateAuthState]);
-
-  // Register function
-  const register = useCallback(async (userData: CreateUserData): Promise<AuthResponse<UserProfile>> => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const result = await authClient.register(userData);
-      
-      if (result.success && result.user) {
-        updateAuthState(result.user, false);
-      } else {
-        updateAuthState(null, false, result.message || 'Registration failed');
-      }
-      
-      return result;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
-      updateAuthState(null, false, errorMessage);
-      
-      return {
-        success: false,
-        message: errorMessage,
-        error: errorMessage,
-      };
-    }
-  }, [updateAuthState]);
-
-  // Logout function
-  const logout = useCallback(async (): Promise<AuthResponse> => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const result = await authClient.logout();
-      
-      // Always clear local state, even if server logout fails
-      updateAuthState(null, false);
-      
-      return result;
-    } catch (error) {
-      // Clear local state even on error
-      updateAuthState(null, false, 'Logout may have failed, but you have been logged out locally');
-      
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : 'Logout failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
-  }, [updateAuthState]);
-
-  // Update profile function
-  const updateProfile = useCallback(async (
-    updateData: Partial<Pick<UserProfile, 'username'>>
-  ): Promise<AuthResponse<UserProfile>> => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const result = await authClient.updateProfile(updateData);
-      
-      if (result.success && result.user) {
-        updateAuthState(result.user, false);
-      } else {
-        setState(prev => ({ 
-          ...prev, 
-          isLoading: false, 
-          error: result.message || 'Profile update failed' 
-        }));
-      }
-      
-      return result;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Profile update failed';
-      setState(prev => ({ ...prev, isLoading: false, error: errorMessage }));
-      
-      return {
-        success: false,
-        message: errorMessage,
-        error: errorMessage,
-      };
-    }
-  }, [updateAuthState]);
-
-  // Refresh profile data
-  const refreshProfile = useCallback(async () => {
-    try {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const result = await authClient.getCurrentUserProfile();
-      
-      if (result.success && result.user) {
-        updateAuthState(result.user, false);
-      } else {
-        setState(prev => ({ 
-          ...prev, 
-          isLoading: false, 
-          error: result.message || 'Failed to refresh profile' 
-        }));
-      }
-    } catch (error) {
-      console.error('Profile refresh failed:', error);
-      setState(prev => ({ 
-        ...prev, 
-        isLoading: false, 
-        error: 'Failed to refresh profile' 
-      }));
-    }
-  }, [updateAuthState]);
-
-  // Initialize authentication on mount
-  useEffect(() => {
-    if (autoCheck) {
-      checkAuth();
+    const res = await authClient.login(username, password);
+    setLoading(false);
+    if (res.success && res.user) {
+      setUser(res.user);
+      return { success: true };
     } else {
-      setState(prev => ({ ...prev, isLoading: false }));
+      setError(res.error || 'Login failed');
+      return { success: false, error: res.error };
+      
     }
-  }, [autoCheck, checkAuth]);
+  }, []);
 
-  // Sync with authClient's current user state
-  useEffect(() => {
-    const currentUser = authClient.getCurrentUser();
-    if (currentUser && !state.user) {
-      updateAuthState(currentUser, false);
+  const register = useCallback(async (username: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    const res = await authClient.register(username, password);
+    setLoading(false);
+    if (res.success && res.user) {
+      setUser(res.user);
+      return { success: true };
+    } else {
+      setError(res.error || 'Registration failed');
+      return { success: false, error: res.error };
     }
-  }, [state.user, updateAuthState]);
+  }, []);
+
+  const logout = useCallback(() => {
+    authClient.logout();
+    setUser(null);
+  }, []);
+
 
   return {
-    // State
-    user: state.user,
-    isAuthenticated: state.isAuthenticated,
-    isLoading: state.isLoading,
-    error: state.error,
-    
-    // Methods
+    user,
+    loading,
+    error,
     login,
     register,
     logout,
-    checkAuth,
-    updateProfile,
-    clearError,
-    refreshProfile,
+    isAuthenticated: !!user,
+    topUsers,
   };
 }
-
-
-export default useAuth;

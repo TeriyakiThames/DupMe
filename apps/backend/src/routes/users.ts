@@ -19,6 +19,6 @@ router.patch('/increment-draw', requireAuth, UserController.incrementDraw);
 
 // public routes - get user by ID (public profiles)
 router.get('/:id', UserController.getUserById);
-router.get('/', requireAuth, UserController.getAllUsers);
+router.get('/', UserController.getAllUsers);
 
 export default router;

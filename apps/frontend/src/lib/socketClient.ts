@@ -1,12 +1,15 @@
-import { io, Socket } from "socket.io-client";
+// socketClient.ts
+// Handles low-level socket.io connection
+import { UserProfile } from '@/types/auth';
+import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
-export function initSocket(roomCode: string, userId: number) {
+export function initSocket(serverUrl: string, userProfile: UserProfile): Socket {
   if (!socket) {
-    socket = io(process.env.BACKEND_URL || 'http://localhost:4000', {
-      query: { roomCode, userId },
-      transports: ["websocket"],
+    socket = io(serverUrl, {
+      withCredentials: true,
+      auth: { userProfile },
     });
   }
   return socket;

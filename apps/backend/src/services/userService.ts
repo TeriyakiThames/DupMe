@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
-import { UserModel } from '../models/User';
-import { User, CreateUserData, UpdateUserData, LoginCredentials,  UserProfile } from '../types/user';
+import { UserModel } from '../models/user';
+import { User, CreateUserData, UpdateUserData, LoginCredentials,  UserProfile } from '../types/auth';
 
 export class UserService {
   private static readonly SALT_ROUNDS = 12;

@@ -1,9 +1,13 @@
 {
 	"devDependencies": {
+		"@types/jsonwebtoken": "^9.0.10",
 		"concurrently": "^8.2.2",
 		"prettier": "^3.6.2"
 	},
 	"scripts": {
 		"dev": "concurrently \"pnpm --filter backend start\" \"pnpm --filter frontend dev\""
+	},
+	"dependencies": {
+		"jsonwebtoken": "^9.0.2"
 	}
 }

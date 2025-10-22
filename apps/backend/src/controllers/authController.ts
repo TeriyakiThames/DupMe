@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/userService';
-import { CreateUserData, LoginCredentials } from '../types/user';
+import { CreateUserData, LoginCredentials } from '../types/auth';
 
 export class AuthController {
-  // register a new user
+
   static async register(req: Request, res: Response): Promise<void> {
     try {
       const userData: CreateUserData = req.body;
       const result = await UserService.register(userData);
 
       if (result.success && result.user) {
-        // set up session
+        
         req.session.isAuthenticated = true;
         req.session.user = result.user;
 
@@ -33,15 +33,14 @@ export class AuthController {
       });
     }
   }
-
-  // login user
+  
   static async login(req: Request, res: Response): Promise<void> {
     try {
       const credentials: LoginCredentials = req.body;
       const result = await UserService.login(credentials);
 
       if (result.success && result.user) {
-        // set up session
+        
         req.session.isAuthenticated = true;
         req.session.user = result.user;
 
@@ -65,7 +64,7 @@ export class AuthController {
     }
   }
 
-  // logout user
+  
   static async logout(req: Request, res: Response): Promise<void> {
     try {
       req.session.destroy((err) => {
@@ -78,7 +77,6 @@ export class AuthController {
           return;
         }
 
-        // clear the session cookie
         res.clearCookie('connect.sid');
         
         res.status(200).json({
@@ -95,7 +93,7 @@ export class AuthController {
     }
   }
 
-  // get current user session
+  
   static async me(req: Request, res: Response): Promise<void> {
     try {
       if (req.session?.isAuthenticated && req.session?.user) {
@@ -119,7 +117,7 @@ export class AuthController {
     }
   }
 
-  // check authentication status
+  
   static async checkAuth(req: Request, res: Response): Promise<void> {
     try {
       const isAuthenticated = !!(req.session?.isAuthenticated && req.session?.user);

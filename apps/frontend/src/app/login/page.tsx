@@ -1,8 +1,7 @@
 'use client';
 
-
 import React, { useState } from 'react';
-import LogoHeader from '@/components/ui/logo/dupMe';
+import LogoHeader from '@/components/logo/DupMe';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -11,17 +10,32 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login, register, isLoading, error, clearError } = useAuth();
+  const { user, loading, error, login, register, logout, isAuthenticated } = useAuth();
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const clearError = () => {
+    setLocalError(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let result;
     if (mode === 'login') {
-      await login({ username, password });
+      result = await login(username, password);
+      if (result.success) router.push('/main');
+      else if (result.error) setLocalError(result.error);
+
     } else {
-      await register({ username, password });
+      result = await register(username, password);
+      if (result.success) {router.push('/login'); setMode('login');}
+      else if (result.error) setLocalError(result.error);
     }
-    // On success, redirect to home
-    router.push('/');
+  };
+
+  // Clear error when switching mode
+  const handleModeSwitch = (newMode: 'login' | 'register') => {
+    setMode(newMode);
+    setLocalError(null);
   };
 
   return (
@@ -34,10 +48,10 @@ export default function LoginPage() {
           {mode === 'login' ? 'Login to DupMe' : 'Register for DupMe'}
         </h3>
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {error && (
+          {(localError || error) && (
             <div className="bg-red-100 border border-red-300 rounded p-2 text-red-800 text-sm">
-              {error}
-              <button onClick={clearError} className="ml-2 text-red-600 hover:text-red-800">×</button>
+              {localError || error}
+              <button type="button" onClick={clearError} className="ml-2 text-red-600 hover:text-red-800">×</button>
             </div>
           )}
           <input
@@ -59,23 +73,23 @@ export default function LoginPage() {
           <button
             type="submit"
             className="w-full bg-black text-white px-4 py-3 rounded-md font-semibold hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? (mode === 'login' ? 'Logging in...' : 'Registering...') : (mode === 'login' ? 'Login' : 'Register')}
+            {loading ? (mode === 'login' ? 'Logging in...' : 'Registering...') : (mode === 'login' ? 'Login' : 'Register')}
           </button>
         </form>
         <div className="mt-6 text-center">
           {mode === 'login' ? (
             <span>
               Don't have an account?{' '}
-              <button className="text-blue-600 hover:underline" onClick={() => setMode('register')}>
+              <button className="text-blue-600 hover:underline" type="button" onClick={() => handleModeSwitch('register')}>
                 Register
               </button>
             </span>
           ) : (
             <span>
               Already have an account?{' '}
-              <button className="text-blue-600 hover:underline" onClick={() => setMode('login')}>
+              <button className="text-blue-600 hover:underline" type="button" onClick={() => handleModeSwitch('login')}>
                 Login
               </button>
             </span>

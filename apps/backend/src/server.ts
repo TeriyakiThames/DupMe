@@ -1,90 +1,43 @@
 import express from "express";
+import cors from "cors";
 import http from "http";
-import { Server } from "socket.io";
+import sharedSession from "express-socket.io-session";
+import session from "express-session";
+import { ExtendedError, Server } from "socket.io";
 import { ServerManager } from "./managers/serverManager";
 import { SocketIOService } from "./io";
+import type { Socket } from "socket.io";
 import swaggerUi from "swagger-ui-express";
 import * as swaggerDocument from "./swagger.json";
-import session from "express-session";
 import dotenv from "dotenv";
 import { testConnection, initializeDatabase } from "./config/database";
 import apiRoutes from "./routes";
 
-// Initialize server manager with custom options
-const serverManager = new ServerManager({
-	cleanupInterval: '*/2 * * * *', // Every 2 minutes for more frequent cleanup
-	maxInactiveTime: 60, // 60 minutes before inactive rooms are deleted
-	maxRooms: 500, // Maximum 500 concurrent rooms
-});
-
-// load environment variables
+// Load environment variables
 dotenv.config();
-
+const allowedOrigins = ["https://192.168.1.104:3000", "http://192.168.1.104:3000",
+                "https://localhost:3000", "http://localhost:3000"];
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:3000",
-      "http://localhost:3001"
-    ],
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
 
-// Initialize socket service
-new SocketIOService(io, serverManager);
-
-// middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// cors middleware 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  const allowedOrigins = [
-    process.env.FRONTEND_URL || "http://localhost:3000",
-    "http://localhost:3001", // alternative frontend port
-  ];
-  
-  if (allowedOrigins.includes(origin as string)) {
-    res.setHeader('Access-Control-Allow-Origin', origin as string);
-  }
-  
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-    return;
-  }
-  
-  next();
-});
-
-// session configuration
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'super-secret-session-key-change-this-in-production',
+const expressSession = session({
+  secret: 'super-secret-session-key',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS in production
-    httpOnly: true, // prevent XSS
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-  },
-  name: 'dupme.sid', // custom session name
+    secure: true,
+    sameSite: 'none',
+    maxAge: 1000 * 60 * 60 * 24, // 1 day
+  }
+});
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cors({
+  origin: true,
+  credentials: true,
 }));
-
-// API routes
+app.use(expressSession);
 app.use('/api', apiRoutes);
-
-// Swagger documentation
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
-// root endpoint
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -93,33 +46,49 @@ app.get("/", (req, res) => {
     endpoints: {
       api: "/api",
       health: "/api/health",
-      docs: "/docs",
-      rooms: "/rooms"
     },
     timestamp: new Date().toISOString(),
   });
 });
 
-// Server startup and configuration
-const PORT = process.env.PORT || 4000;
+const serverManager = new ServerManager({
+	cleanupInterval: '*/2 * * * *', // Every 2 minutes for more frequent cleanup
+	maxInactiveTime: 60, // 60 minutes before inactive rooms are deleted
+	maxRooms: 500, // Maximum 500 concurrent rooms
+});
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+      origin: true,
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+io.use(sharedSession(expressSession, { autoSave: true }) as unknown as (
+  socket: Socket,
+  next: (err?: ExtendedError) => void
+) => void); 
+new SocketIOService(io, serverManager);
 
+// Initialize the server to listen to a port
+const PORT = process.env.PORT;
 const startServer = async () => {
   try {
-    // test database connection
+    // Test database connection
     const dbConnected = await testConnection();
     if (!dbConnected) {
       console.error('Failed to connect to database. Server will not start.');
       process.exit(1);
     }
 
-    // initialize database schema
+    // Initialize database schema
     await initializeDatabase();
 
-    // start the server
+    // Start the server
     server.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
       console.log(`🌐 API available at: http://localhost:${PORT}/api`);
-      console.log(`📚 Documentation: http://localhost:${PORT}/docs`);
+      // console.log(`📚 Documentation: http://localhost:${PORT}/docs`);
       console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
       console.log(`🗄️ Database connected and initialized`);
       console.log(`🔌 Socket.IO enabled for real-time communication`);

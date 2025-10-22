@@ -1,24 +1,27 @@
 // In-memory implementation for DupMe Game Service
 // Replace with database calls (MongoDB, PostgreSQL, etc.) for production
 
-import { UserProfile as Player } from "../types/user";
-import { GameState } from "../types/game";
+import { UserProfile } from "../types/auth";
+import { GameState } from "../types/socketGame";
 import { UserService } from "../services/userService";
 
 export class RoomManager {
 	private gameState: GameState | null = null;
-	private playerPoints: Map<number, number> = new Map();
+	private playerPoints: Map<number, number> = new Map(); 
 	private roomId: string;
-    readonly players: Player[];
+    readonly players: UserProfile[];
 
-	constructor(roomId: string, players: Player[]) {    
+	
+	constructor(roomId: string, players: UserProfile[]) {    
 		this.roomId = roomId;
         this.players = players;
-        this.playerPoints = new Map(players.map(player => [player.id, 0]));
 		console.log(`🎮 RoomManager created for room ${roomId}`);
 	}
 
 	async increasePoint(id: number, points: number) {
+        if (!this.gameState) {
+            throw new Error(`Game ended in room ${this.roomId}`);
+        }
 		const currentPoints = this.playerPoints.get(id) || 0;
 		const newPoints = currentPoints + points;
 		this.playerPoints.set(id, newPoints);
@@ -37,6 +40,9 @@ export class RoomManager {
 	}
 
 	async decreasePoint(id: number, points: number) {
+        if (!this.gameState) {
+            throw new Error(`Game ended in room ${this.roomId}`);
+        }
 		const currentPoints = this.playerPoints.get(id) || 0;
 		const newPoints = Math.max(0, currentPoints - points); // Prevent negative points
 		this.playerPoints.set(id, newPoints);
@@ -56,29 +62,32 @@ export class RoomManager {
 
 	async startGame() {
 		// Randomize first player
-		const firstPlayer = this.players[Math.floor(Math.random() * this.players.length)];
-		const secondPlayer = this.players.find(p => p.id !== firstPlayer.id);
+		const firstIndex = Math.floor(Math.random() * this.players.length);
+		const questionPlayer = this.players[firstIndex];
+		// All other players are answer players
+		const answerPlayers = this.players.filter(p => p.id !== questionPlayer.id);
+		this.playerPoints = new Map(this.players.map(player => [player.id, 0]));
 
-        // Initialize game state
-        this.gameState = {
-            currentPattern: [],
-            questionPlayer: firstPlayer,
-			answerPlayer: secondPlayer,
-            turnCounts: 0,
+		// Store the index of the current question player for turn rotation
+		this.gameState = {
+			currentPattern: [],
+			questionPlayer,
+			answerPlayers,
+			turnCount: 0,
 			roundNumber: 1,
-			isGameActive: true,
-        };
+			questionPlayerIndex: firstIndex,
+
+		};
 
 		console.log(
-			`🎮 Game started in room ${this.roomId}. Question player: ${firstPlayer.id}, Answer player: ${secondPlayer?.id}`
+			`🎮 Game started in room ${this.roomId}. Question player: ${questionPlayer.id}, Answer players: [${answerPlayers.map(p => p.id).join(', ')}]`
 		);
 
 		return {
 			success: true,
 			roomId: this.roomId,
-			questionPlayer: firstPlayer,
-			answerPlayer: secondPlayer,
-			message: `Game started! ${this.players.find(player => player.id === firstPlayer.id)?.username} creates the pattern first.`,
+			gameState: this.gameState,
+			message: `Game started! ${questionPlayer.username} creates the pattern first.`,
 		};
 	}
 
@@ -87,8 +96,8 @@ export class RoomManager {
 	 * Returns data to send to answerPlayer via IO
 	 */
 	async saveSequence(playerId: number, sequence: string[]) {
-        if (!this.gameState || !this.gameState.isGameActive) {
-			throw new Error(`Game not active in room ${this.roomId}`);
+		if (!this.gameState) {
+			throw new Error(`Game ended in room ${this.roomId}`);
 		}
 
 		if (this.gameState.questionPlayer?.id !== playerId) {
@@ -101,14 +110,14 @@ export class RoomManager {
 
 		console.log(`💾 Sequence saved for room ${this.roomId}: [${sequence.join(", ")}] by ${playerId}`);
 
-		// Return data for IO to send to answerPlayer
+		// Return data for IO to send to answerPlayers
 		return {
 			success: true,
 			roomId: this.roomId,
 			sequence,
-			answerPlayerId: this.gameState.answerPlayer?.id,
+			answerPlayerIds: this.gameState.answerPlayers?.map(p => p.id) || [],
 			roundNumber: this.gameState.roundNumber,
-			message: `Sequence ready for ${this.gameState.answerPlayer?.username}`,
+			message: `Sequence ready for ${this.gameState.answerPlayers?.map(p => p.username).join(', ')}`,
 		};
 	}
 
@@ -116,46 +125,57 @@ export class RoomManager {
 	 * Update points from frontend after sequence checking - called by IO
 	 * Returns whether to continue game or switch turns
 	 */
-	async updateRoundResult(playerId: number, pointsEarned: number, success: boolean) {
-		if (!this.gameState || !this.gameState.isGameActive) {
-			throw new Error(`Game not active in room ${this.roomId}`);
+	async updateRoundResult(playerId: number, pointsEarned: number) {
+		if (!this.gameState) {
+			throw new Error(`Game ended in room ${this.roomId}`);
 		}
 
-		if (this.gameState.answerPlayer?.id !== playerId) {
-			throw new Error(`Player ${playerId} is not the current answer player`);
+		// All answer players must submit results; for now, only allow if player is an answer player
+		if (!this.gameState.answerPlayers?.some(p => p.id === playerId)) {
+			throw new Error(`Player ${playerId} is not a current answer player`);
 		}
 
-		// Update points
+		// Update points 
 		const currentPoints = this.playerPoints.get(playerId) || 0;
 		this.playerPoints.set(playerId, currentPoints + pointsEarned);
+		const playerPoints = Object.fromEntries([...(this.playerPoints ?? [])]
+													.sort((a, b) => b[1] - a[1])
+													.map(([id, points]) => [id, points]));
+		const usernameDelta: [string, number] = [
+			this.players.find(p => p.id === playerId)?.username || 'Unknown', 
+			pointsEarned
+		];
 
 		// Increment turn count
-		this.gameState.turnCounts++;
+		this.gameState.turnCount++;
 
 		console.log(
-			`🎯 Round ${this.gameState.roundNumber} result: ${playerId} earned ${pointsEarned} points (success: ${success})`
+			`🎯 Round ${this.gameState.roundNumber} result: ${playerId} earned ${pointsEarned} points`
 		);
 
 		// Determine if game should continue or switch turns
-		const shouldSwitchTurns = true; // Switch every round
-		const gameEnded = this.gameState.turnCounts >= 10; // End after 10 turns
-
+		const gameEnded = this.gameState.turnCount >= 10; // End after 10 turns
+		
+		
+												
 		if (gameEnded) {
-			this.gameState.isGameActive = false;
 			return {
 				success: true,
 				gameEnded: true,
 				roomId: this.roomId,
-				finalScores: Object.fromEntries(this.playerPoints),
+				playerPoints,
+				usernameDelta,
 				message: "Game completed!",
 			};
-		}
-
-		if (shouldSwitchTurns) {
-			// Switch roles
-			const temp = this.gameState.questionPlayer;
-			this.gameState.questionPlayer = this.gameState.answerPlayer;
-			this.gameState.answerPlayer = temp;
+		} else {
+			// Rotate question player index
+			const totalPlayers = this.players.length;
+			let currentIndex = this.gameState.questionPlayerIndex ?? this.players.findIndex(p => p.id === this.gameState?.questionPlayer?.id);
+			currentIndex = (currentIndex + 1) % totalPlayers;
+			this.gameState.questionPlayerIndex = currentIndex;
+			this.gameState.questionPlayer = this.players[currentIndex];
+			// All other players are answer players
+			this.gameState.answerPlayers = this.players.filter((p, idx) => idx !== currentIndex);
 			this.gameState.roundNumber++;
 			this.gameState.currentPattern = [];
 		}
@@ -163,13 +183,11 @@ export class RoomManager {
 		return {
 			success: true,
 			gameEnded: false,
-			switchedTurns: shouldSwitchTurns,
 			roomId: this.roomId,
-			currentQuestionPlayer: this.gameState.questionPlayer,
-			currentAnswerPlayer: this.gameState.answerPlayer,
-			roundNumber: this.gameState.roundNumber,
-			currentScores: Object.fromEntries(this.playerPoints),
-			message: shouldSwitchTurns ? "Roles switched!" : "Continue round",
+			gameState: this.gameState,
+			playerPoints,
+			usernameDelta,
+			message: "Continue",
 		};
 	}
 
@@ -193,7 +211,7 @@ export class RoomManager {
 				finalScore: this.playerPoints.get(p.id) || 0
 			})),
 			winnerId: winner,
-			totalTurns: this.gameState.turnCounts,
+			totalTurns: this.gameState.turnCount,
 			totalRounds: this.gameState.roundNumber,
 			gameEndTime: new Date(),
 			finalScores,
@@ -230,8 +248,8 @@ export class RoomManager {
 	async endGame() {
 
 		const leaderboard = Object.entries(this.playerPoints)
-			.map(([user, pts]) => ({ user, pts }))
-			.sort((a, b) => b.pts - a.pts);
+			.map(([user, score]) => ({ user, score }))
+			.sort((a, b) => b.score - a.score);
 
 		console.log(`🏁 Game ended in room ${this.roomId}. Winner: ${leaderboard[0]?.user}`);
 		console.log("📈 Final leaderboard:", leaderboard);
@@ -242,33 +260,37 @@ export class RoomManager {
 			winner: leaderboard[0]?.user,
 			leaderboard,
 			message: `Game ended. Winner: ${leaderboard[0]?.user}`,
-			timestamp: new Date().toISOString(),
+			
 		};
 	}
 
 	async resetGame() {
-        // Find the other player (switch turns)
-        const newQuestionPlayer = this.players.find(player => player.id !== this.gameState?.questionPlayer?.id);
-		const newAnswerPlayer = this.players.find(player => player.id !== newQuestionPlayer?.id);
+		// Rotate to the next question player after the current one, or start at 0 if no gameState
+		let nextQuestionIndex = 0;
+		if (this.gameState && typeof this.gameState.questionPlayerIndex === 'number') {
+			nextQuestionIndex = (this.gameState.questionPlayerIndex + 1) % this.players.length;
+		}
+		const questionPlayer = this.players[nextQuestionIndex];
+		const answerPlayers = this.players.filter((p, idx) => idx !== nextQuestionIndex);
 
-	    // Initialize game state
-        this.gameState = {
-            currentPattern: [],
-            questionPlayer: newQuestionPlayer || this.players[0],
-			answerPlayer: newAnswerPlayer || this.players[1],
-            turnCounts: 0,
+		// Initialize game state
+		this.gameState = {
+			currentPattern: [],
+			questionPlayer,
+			answerPlayers,
+			turnCount: 0,
 			roundNumber: 1,
-			isGameActive: true,
-        };
+			questionPlayerIndex: nextQuestionIndex,
+		};
 
-		console.log(`🔄 Game reset for room ${this.roomId} - New question player: ${newQuestionPlayer?.id}`);
+		console.log(`🔄 Game reset for room ${this.roomId} - New question player: ${questionPlayer?.id}`);
 
 		return {
 			success: true,
 			roomId: this.roomId,
-			questionPlayer: newQuestionPlayer,
-			answerPlayer: newAnswerPlayer,
-			message: `Game reset! ${newQuestionPlayer?.username} creates the pattern first.`,
+			questionPlayer,
+			answerPlayers,
+			message: `Game reset! ${questionPlayer?.username} creates the pattern first.`,
 		};
 	}
 

@@ -1,10 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import * as cron from 'node-cron';
 import { RoomManager } from './roomManager';
-import { UserProfile as Player } from '../types/user';
-import { Room, ServerManagerOptions } from '../types/room';
+import { UserProfile as Player, UserProfile } from '../types/auth';
+import { Room, ServerManagerOptions } from '../types/socket';
 
 export class ServerManager {
+	private onlineUsers: Set<string> = new Set();
 	private rooms: Map<string, Room> = new Map();
 	private options: Required<ServerManagerOptions>;
 
@@ -57,14 +58,14 @@ export class ServerManager {
 	/**
 	 * Add a user to a room: Increment user count of that room and update last activity
 	 */
-	joinRoom(roomId: string, playerId: number): boolean {
+	joinRoom(roomId: string, userProfile: UserProfile): boolean {
 		const room = this.rooms.get(roomId);
 		if (!room) {
 			return false;
 		}
 
 		// Check if player is already in the room
-		if (room.players.has(playerId)) {
+		if (room.players.has(userProfile.id)) {
 			return false;
 		}
 
@@ -73,7 +74,10 @@ export class ServerManager {
 			return false;
 		}
 
-		room.players.add(playerId);
+		// Add player to Room
+		room.players.add(userProfile.id);
+		// Add full user profile to RoomManager
+		room.roomManager.players.push(userProfile);
 		room.userCount++;
 		room.lastActivity = new Date();
 		return true;
@@ -145,6 +149,7 @@ export class ServerManager {
 		const room = this.rooms.get(roomId);
 		return room ? Array.from(room.players) : [];
 	}
+
 
 	/**
 	 * Check if a player is in a specific room
@@ -246,6 +251,8 @@ export class ServerManager {
 		
 		// Update room activity
 		this.updateActivity(roomId);
+		// Delete room manager?
+		this.deleteRoom(roomId);
 		
 		console.log(`Game ended in room ${roomId} - Winner: ${gameResult.winner}`);
 		
@@ -313,7 +320,7 @@ export class ServerManager {
 	/**
 	 * Handle round result from IO - delegates to RoomManager
 	 */
-	async updateRoundResult(roomId: string, playerId: number, pointsEarned: number, success: boolean) {
+	async updateRoundResult(roomId: string, playerId: number, pointsEarned: number) {
 		const room = this.rooms.get(roomId);
 		if (!room) {
 			throw new Error(`Room ${roomId} does not exist`);
@@ -327,7 +334,7 @@ export class ServerManager {
 		this.updateActivity(roomId);
 
 		// Delegate to room's RoomManager
-		const result = await room.roomManager.updateRoundResult(playerId, pointsEarned, success);
+		const result = await room.roomManager.updateRoundResult(playerId, pointsEarned);
 
 		// If game ended, automatically persist results
 		if (result.gameEnded) {
@@ -343,6 +350,15 @@ export class ServerManager {
 		return result;
 	}
 
+
+	addOnlineUser(username: string): void {
+		this.onlineUsers.add(username);
+	}
+
+	removeOnlineUser(username: string): void {
+		this.onlineUsers.delete(username);
+	}
+
 	/**
 	 * Get room statistics
 	 */
@@ -350,6 +366,7 @@ export class ServerManager {
 		totalRooms: number;
 		activeRooms: number;
 		totalUsers: number;
+		onlineUsers: Set<string>;
 		emptyRooms: number;
 	} {
 		const rooms = Array.from(this.rooms.values());
@@ -361,6 +378,7 @@ export class ServerManager {
 			totalRooms: rooms.length,
 			activeRooms: activeRooms.length,
 			totalUsers,
+			onlineUsers: this.onlineUsers,
 			emptyRooms: emptyRooms.length,
 		};
 	}

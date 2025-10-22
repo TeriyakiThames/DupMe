@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/userService';
-import { UpdateUserData } from '../types/user';
+import { UpdateUserData } from '../types/auth';
 
 export class UserController {
   // get current user profile
@@ -154,8 +154,10 @@ export class UserController {
   // get all users 
   static async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
-      const limit = parseInt(req.query.limit as string) || 50;
-      const offset = parseInt(req.query.offset as string) || 0;
+      let limit = parseInt(req.query.limit as string);
+      let offset = parseInt(req.query.offset as string);
+      if (Number.isNaN(limit)) limit = 50;
+      if (Number.isNaN(offset)) offset = 0;
 
       if (limit > 100) {
         res.status(400).json({

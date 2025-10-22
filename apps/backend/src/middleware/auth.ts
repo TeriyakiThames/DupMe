@@ -1,20 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserProfile } from '../types/user';
+import { verifyToken } from "./jwt";
 
-// extend express request type to include user session and session
-declare global {
-  namespace Express {
-    interface Request { 
-      user?: UserProfile;
-    }
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
-}
 
+  const token = authHeader.split(" ")[1];
+  const decoded = verifyToken(token);
+  if (!decoded) return res.status(401).json({ message: "Invalid token" });
 
-// check if user is authenticated
+  (req as any).user = decoded;
+  next();
+};
+
 export const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
   if (req.session?.isAuthenticated && req.session?.user) {
-    req.user = req.session.user;
     next();
   } else {
     res.status(401).json({ 
@@ -24,7 +26,6 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction): vo
   }
 };
 
-// check if user is NOT authenticated (for login/register routes)
 export const requireNoAuth = (req: Request, res: Response, next: NextFunction): void => {
   if (req.session?.isAuthenticated) {
     res.status(409).json({ 
@@ -36,20 +37,11 @@ export const requireNoAuth = (req: Request, res: Response, next: NextFunction): 
   }
 };
 
-// optionally check authentication (user might or might not be logged in)
-export const optionalAuth = (req: Request, res: Response, next: NextFunction): void => {
-  if (req.session?.isAuthenticated && req.session?.user) {
-    req.user = req.session.user;
-  }
-  next();
-};
 
-// validate session data
 export const validateSession = (req: Request, res: Response, next: NextFunction): void => {
   // check if session exists and has valid structure
   if (req.session?.isAuthenticated) {
     if (!req.session.user || typeof req.session.user.id !== 'number') {
-      // invalid session data, clear it
       req.session.destroy((err) => {
         if (err) {
           console.error('Session destruction error:', err);
@@ -65,11 +57,11 @@ export const validateSession = (req: Request, res: Response, next: NextFunction)
   next();
 };
 
-// check if user owns the resource (for user-specific operations)
+
 export const requireOwnership = (req: Request, res: Response, next: NextFunction): void => {
   const userId = parseInt(req.params.id);
   
-  if (!req.user) {
+  if (!req.session.user) {
     res.status(401).json({ 
       success: false, 
       message: 'Authentication required.' 
@@ -77,7 +69,7 @@ export const requireOwnership = (req: Request, res: Response, next: NextFunction
     return;
   }
 
-  if (req.user.id !== userId) {
+  if (req.session.user.id !== userId) {
     res.status(403).json({ 
       success: false, 
       message: 'Forbidden. You can only access your own resources.' 

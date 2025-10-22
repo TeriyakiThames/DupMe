@@ -8,8 +8,8 @@ const router = Router();
 router.use(validateSession);
 
 // public routes (no authentication required)
-router.post('/register', requireNoAuth, AuthController.register);
-router.post('/login', requireNoAuth, AuthController.login);
+router.post('/register', AuthController.register);
+router.post('/login', AuthController.login);
 router.get('/check', AuthController.checkAuth);
 
 // protected routes (authentication required)

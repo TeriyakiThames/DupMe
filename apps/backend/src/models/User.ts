@@ -1,6 +1,6 @@
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import pool from '../config/database';
-import { User, CreateUserData, UpdateUserData } from '../types/user';
+import { User, CreateUserData, UpdateUserData } from '../types/auth';
 
 export class UserModel {
   // create a new user
@@ -64,10 +64,11 @@ export class UserModel {
     return result.affectedRows > 0;
   }
 
-  // get all users (for admin purposes)
   static async findAll(limit: number = 50, offset: number = 0): Promise<User[]> {
-    const [rows] = await pool.execute<RowDataPacket[]>(
-      `SELECT * FROM user WHERE is_active = TRUE LIMIT 100 OFFSET 0`
+  
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `SELECT * FROM user WHERE is_active = TRUE ORDER BY win_count DESC LIMIT ? OFFSET ?`,
+      [limit, offset]
     );
 
     return rows as User[];
