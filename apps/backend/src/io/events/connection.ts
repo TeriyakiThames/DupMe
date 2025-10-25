@@ -1,10 +1,10 @@
-import { ServerEventBroadcast, SocketWithUser } from '../../types/socket';
+import { ServerEventBroadcast, SessionSocket } from '../../types/socket';
 import { ServerManager } from '../../managers/serverManager';
 
 /**
  * Handle new socket connection
  */
-export function handleConnection(socket: SocketWithUser, serverManager: ServerManager): void {
+export function handleConnection(socket: SessionSocket, serverManager: ServerManager): void {
 	// Send welcome message
 	socket.emit('connected', {
 		message: 'Welcome to DupMe!',

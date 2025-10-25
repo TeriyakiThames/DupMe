@@ -1,3 +1,5 @@
+"use client"
+
 // useSocket.ts
 // React hook to unify socketManager and socketGameManager
 import { useEffect, useRef, useState } from 'react';
@@ -5,27 +7,28 @@ import { createSocketManager, socketManager } from '../lib/socketManager';
 import { createSocketGameManager, socketGameManager } from '../lib/socketGameManager';
 import { UserProfile } from '@/types/auth';
 
-export function useSocket(serverUrl: string, userProfile?: UserProfile | null) {
+export function useSocket() {
   const managerRef = useRef<any>(null);
   const gameManagerRef = useRef<any>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
+    // NOTE: Handled in socket backend
     // Only initialize socket managers if userProfile is valid and no socket exists
-    if (!userProfile) {
-      // Disconnect socket on logout or missing user
-      if (managerRef.current?.socket) {
-        managerRef.current.socket.disconnect();
-      }
-      managerRef.current = null;
-      gameManagerRef.current = null;
-      setIsConnected(false);
-      return;
-    }
+    // if (!userProfile) {
+    //   // Disconnect socket on logout or missing user
+    //   if (managerRef.current?.socket) {
+    //     managerRef.current.socket.disconnect();
+    //   }
+    //   managerRef.current = null;
+    //   gameManagerRef.current = null;
+    //   setIsConnected(false);
+    //   return;
+    // }
 
     // Singleton socket: only create if not already connected
     if (!managerRef.current) {
-      managerRef.current = createSocketManager(serverUrl, userProfile);
+      managerRef.current = createSocketManager();
       gameManagerRef.current = createSocketGameManager();
     }
 
@@ -38,7 +41,7 @@ export function useSocket(serverUrl: string, userProfile?: UserProfile | null) {
       // Clean up only on unmount, not on every rerender
       // Do not disconnect unless logging out (handled above)
     };
-  }, [serverUrl, userProfile]);
+  }, []);
 
   return {
     isConnected,

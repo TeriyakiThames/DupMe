@@ -13,7 +13,7 @@ export function ClientGameButtons({
   isConnected,
 }: ClientGameComponentProps) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, userProfile } = useAuth();
   const [roomId, setRoomId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

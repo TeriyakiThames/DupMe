@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 export default function HomePage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const router = useRouter();
-  const { user, loading } = useAuth();
+
   const [onlinePlayers, setOnlinePlayers] = useState<string[]>([]);
   const [stats, setStats] = useState<null | {
     totalRooms: number;
@@ -19,10 +19,8 @@ export default function HomePage() {
     emptyRooms: number;
   }>(null);
   
-  const socketApi = useSocket(
-    process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL_LOCAL as string,
-    user
-  );
+  const { userProfile : user, loading } = useAuth();
+  const socketApi = useSocket();
 
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');

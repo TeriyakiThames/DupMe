@@ -1,5 +1,5 @@
 import { Server as SocketIOServer } from 'socket.io';
-import { SocketWithUser } from '../../types/socket';
+import { SessionSocket } from '../../types/socket';
 import { ServerManager } from '../../managers/serverManager';
 import { UserProfile } from '../../types/auth';
 import { RoomEventRequest, RoomEventBroadcast, RoomEventResponse } from '../../types/socketGame';
@@ -8,7 +8,7 @@ import { RoomEventRequest, RoomEventBroadcast, RoomEventResponse } from '../../t
  * Setup game-related socket events
  */
 export function setupGameEvents(
-	socket: SocketWithUser, 
+	socket: SessionSocket, 
 	serverManager: ServerManager, 
 	io: SocketIOServer
 ): void {
@@ -18,18 +18,19 @@ export function setupGameEvents(
 	 */
 	socket.on('start-game', async (data: RoomEventRequest) => {
 		try {
-			if (!data.userProfile || !socket.currentRoomId) {
+			const session = socket.request.session;
+			if (!data.userProfile || !session.currentRoomId) {
 				socket.emit('error', { message: 'User profile required and must be in a room to start a game' });
 				return;
 			}
 
 			// Start the game via ServerManager
-			const gameResult = await serverManager.startGame(socket.currentRoomId, data.userProfile.id);
+			const gameResult = await serverManager.startGame(session.currentRoomId, data.userProfile.id);
 
-			console.log(`🎮 Game started in room ${socket.currentRoomId} by ${data.userProfile.username}`);
+			console.log(`🎮 Game started in room ${session.currentRoomId} by ${data.userProfile.username}`);
 
 			// Notify all players in the room
-			io.to(socket.currentRoomId).emit('game-started', {
+			io.to(session.currentRoomId).emit('game-started', {
 				...gameResult,
 				message: `Game started by ${data.userProfile.username}!`
 			} as RoomEventBroadcast);
@@ -47,7 +48,8 @@ export function setupGameEvents(
 	 */
 	socket.on('save-sequence', async (data: RoomEventRequest) => {
 		try {
-			if (!data.userProfile || !socket.currentRoomId) {
+			const session = socket.request.session;
+			if (!data.userProfile || !session.currentRoomId) {
 				socket.emit('error', { message: 'User profile required and must be in a room to save sequence' });
 				return;
 			}
@@ -59,12 +61,12 @@ export function setupGameEvents(
 
 			// Save sequence via ServerManager
 			const result = await serverManager.saveSequence(
-				socket.currentRoomId, 
+				session.currentRoomId, 
 				data.userProfile.id, 
 				data.sequence
 			);
 
-			console.log(`💾 Sequence saved in room ${socket.currentRoomId} by ${data.userProfile.username}`);
+			console.log(`💾 Sequence saved in room ${session.currentRoomId} by ${data.userProfile.username}`);
 
 			// Confirm to the sequence creator
 			socket.emit('sequence-saved', {
@@ -76,13 +78,12 @@ export function setupGameEvents(
 			// Send sequence to answer players
 			if (result.answerPlayerIds) {
 				// Find the answer players' sockets by checking all sockets in room
-				const sockets = await io.in(socket.currentRoomId).fetchSockets();
+				const sockets = await io.in(session.currentRoomId).fetchSockets();
 				const answerSockets = sockets.filter((s: any) => {
 					// Note: We'll need to store userProfile on socket for this to work
 					// Or find another way to identify the answer players
 					return s.id !== socket.id && result.answerPlayerIds?.includes(s.userProfile.id);
 				});
-
 
 				answerSockets.forEach((answerSocket: any) => {
 					answerSocket.emit('sequence-received', {
@@ -107,7 +108,8 @@ export function setupGameEvents(
 	 */
 	socket.on('submit-round-result', async (data: { userProfile: UserProfile; pointsEarned: number }) => {
 		try {
-			if (!data.userProfile || !socket.currentRoomId) {
+			const session = socket.request.session;
+			if (!data.userProfile || !session.currentRoomId) {
 				socket.emit('error', { message: 'User profile required and must be in a room to submit result' });
 				return;
 			}
@@ -119,24 +121,24 @@ export function setupGameEvents(
 
 			// Update round result via ServerManager
 			const result = await serverManager.updateRoundResult(
-				socket.currentRoomId,
+				session.currentRoomId,
 				data.userProfile.id,
 				data.pointsEarned
 			);
 
-			console.log(`🎯 Round result submitted in room ${socket.currentRoomId} by ${data.userProfile.username}: ${data.pointsEarned} points`);
+			console.log(`🎯 Round result submitted in room ${session.currentRoomId} by ${data.userProfile.username}: ${data.pointsEarned} points`);
 
 			if (result.gameEnded) {
 				// Game has ended - notify all players
-				io.to(socket.currentRoomId).emit('game-ended', {
+				io.to(session.currentRoomId).emit('game-ended', {
 					...result,
 					message: 'Game completed!'
 				} as RoomEventBroadcast);
-				
-				console.log(`🏁 Game ended in room ${socket.currentRoomId}`);
+
+				console.log(`🏁 Game ended in room ${session.currentRoomId}`);
 			} else {
 				// Round continues - notify all players
-				io.to(socket.currentRoomId).emit('round-updated', {
+				io.to(session.currentRoomId).emit('round-updated', {
 					...result,
 					message: 'Roles switched!'
 				} as RoomEventBroadcast);
@@ -155,18 +157,19 @@ export function setupGameEvents(
 	 */
 	socket.on('end-game', async (data: RoomEventRequest) => {
 		try {
-			if (!data.userProfile || !socket.currentRoomId) {
+			const session = socket.request.session;
+			if (!data.userProfile || !session.currentRoomId) {
 				socket.emit('error', { message: 'User profile required and must be in a room to end game' });
 				return;
 			}
 
 			// End the game via ServerManager
-			const gameResult = await serverManager.endGame(socket.currentRoomId, data.userProfile.id);
+			const gameResult = await serverManager.endGame(session.currentRoomId, data.userProfile.id);
 
-			console.log(`🏁 Game ended in room ${socket.currentRoomId} by ${data.userProfile.username}`);
+			console.log(`🏁 Game ended in room ${session.currentRoomId} by ${data.userProfile.username}`);
 
 			// Notify all players in the room
-			io.to(socket.currentRoomId).emit('game-ended', {
+			io.to(session.currentRoomId).emit('game-ended', {
 				...gameResult,
 				message: `Game ended by ${data.userProfile.username}`
 			} as RoomEventBroadcast);
@@ -184,18 +187,20 @@ export function setupGameEvents(
 	 */
 	socket.on('reset-game', async (data: { userProfile: UserProfile }) => {
 		try {
-			if (!data.userProfile || !socket.currentRoomId) {
+			const session = socket.request.session;
+
+			if (!data.userProfile || !session.currentRoomId) {
 				socket.emit('error', { message: 'User profile required and must be in a room to reset game' });
 				return;
 			}
 
 			// Reset the game via ServerManager
-			const gameResult = await serverManager.resetGame(socket.currentRoomId, data.userProfile.id);
+			const gameResult = await serverManager.resetGame(session.currentRoomId, data.userProfile.id);
 
-			console.log(`🔄 Game reset in room ${socket.currentRoomId} by ${data.userProfile.username}`);
+			console.log(`🔄 Game reset in room ${session.currentRoomId} by ${data.userProfile.username}`);
 
 			// Notify all players in the room
-			io.to(socket.currentRoomId).emit('game-reset', {
+			io.to(session.currentRoomId).emit('game-reset', {
 				...gameResult,
 				message: `Game reset by ${data.userProfile.username}!`
 			} as RoomEventBroadcast);
@@ -213,13 +218,15 @@ export function setupGameEvents(
 	 */
 	socket.on('get-game-state', async (data: { userProfile: UserProfile }) => {
 		try {
-			if (!data.userProfile || !socket.currentRoomId) {
+			const session = socket.request.session;
+
+			if (!data.userProfile || !session.currentRoomId) {
 				socket.emit('error', { message: 'User profile required and must be in a room to get game state' });
 				return;
 			}
 
 			// Get game state via ServerManager
-			const gameState = await serverManager.getGameState(socket.currentRoomId);
+			const gameState = await serverManager.getGameState(session.currentRoomId);
 
 			socket.emit('game-state', {
 				success: true,

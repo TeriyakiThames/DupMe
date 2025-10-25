@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useMemo, useState, useEffect, use } from "react";
 import ScorePanel from "@/components/feature/ScorePanel";
 import RoundHeader from "@/components/feature/RoundHeader";
@@ -7,18 +9,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/hooks/useSocket';
 import type { Note, GameMode } from "@/types/components";
 import { RoomEventBroadcast, RoomEventRequest, RoomEventResponse } from "@/types/socketGame";
-import { UserProfile } from "@/types/auth";
 
 export default function GamePage() {
-  const { user, loading } = useAuth();
   const {isConnected, onRoomEvent, 
           offRoomEvent, onGameEvent, offGameEvent,
           getRoomInfo, saveSequence, submitRoundResult, 
           getGameState
-   } = useSocket(
-      process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL_LOCAL as string,
-      user
-  );
+   } = useSocket();
+  const { userProfile : user } = useAuth();
+   
 
   // State variables
   const [roomId, setRoomId] = useState<string>(""); 

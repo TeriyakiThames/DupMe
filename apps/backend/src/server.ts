@@ -1,26 +1,33 @@
 import express from "express";
 import cors from "cors";
 import http from "http";
-import sharedSession from "express-socket.io-session";
 import session from "express-session";
-import { ExtendedError, Server } from "socket.io";
+import {  Server } from "socket.io";
 import { ServerManager } from "./managers/serverManager";
 import { SocketIOService } from "./io";
-import type { Socket } from "socket.io";
-import swaggerUi from "swagger-ui-express";
-import * as swaggerDocument from "./swagger.json";
+// import swaggerUi from "swagger-ui-express";
+// import * as swaggerDocument from "./swagger.json";
 import dotenv from "dotenv";
 import { testConnection, initializeDatabase } from "./config/database";
 import apiRoutes from "./routes";
 
 // Load environment variables
 dotenv.config();
-const allowedOrigins = ["https://192.168.1.104:3000", "http://192.168.1.104:3000",
-                "https://localhost:3000", "http://localhost:3000"];
+// Not used yet
+const allowedOrigins = [ process.env.FRONTEND || 'http://localhost:3001',  'http://localhost:3000'];
 const app = express();
+app.use(cors({
+  origin: true,         
+  credentials: true,    
+}));
+
+app.options("*", cors({
+  origin: true,
+  credentials: true,
+}));
 
 const expressSession = session({
-  secret: 'super-secret-session-key',
+  secret: process.env.SESSION_SECRET || 'default-secret',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -32,10 +39,6 @@ const expressSession = session({
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cors({
-  origin: true,
-  credentials: true,
-}));
 app.use(expressSession);
 app.use('/api', apiRoutes);
 app.get("/", (req, res) => {
@@ -45,7 +48,6 @@ app.get("/", (req, res) => {
     version: "1.0.0",
     endpoints: {
       api: "/api",
-      health: "/api/health",
     },
     timestamp: new Date().toISOString(),
   });
@@ -57,17 +59,10 @@ const serverManager = new ServerManager({
 	maxRooms: 500, // Maximum 500 concurrent rooms
 });
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-      origin: true,
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
-io.use(sharedSession(expressSession, { autoSave: true }) as unknown as (
-  socket: Socket,
-  next: (err?: ExtendedError) => void
-) => void); 
+const io = new Server(server);
+
+// Integrate session with Socket.IO
+io.engine.use(expressSession);
 new SocketIOService(io, serverManager);
 
 // Initialize the server to listen to a port
@@ -87,11 +82,11 @@ const startServer = async () => {
     // Start the server
     server.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
+      console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
       console.log(`🌐 API available at: http://localhost:${PORT}/api`);
       // console.log(`📚 Documentation: http://localhost:${PORT}/docs`);
-      console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
-      console.log(`🗄️ Database connected and initialized`);
-      console.log(`🔌 Socket.IO enabled for real-time communication`);
+      // console.log(`🔗 Frontend allowed origins: ${allowedOrigins.join(', ')}`);
+    
     });
   } catch (error) {
     console.error('Failed to start server:', error);
@@ -118,3 +113,4 @@ process.on('SIGTERM', () => {
 		process.exit(0);
 	});
 });
+  

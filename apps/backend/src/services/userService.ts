@@ -15,31 +15,19 @@ export class UserService {
     return bcrypt.compare(password, hash);
   }
 
-  // convert User to UserSession (remove sensitive data)
-  private static toUserSession(user: User): UserProfile {
+  private static toUserProfile(userProfile: User): UserProfile {
     return {
-      id: user.id,
-      username: user.username,
-      win_count: user.win_count,
-      loss_count: user.loss_count,
-      draw_count: user.draw_count,
-      is_active: user.is_active
-    };
-  }
-
-  private static toUserProfile(user: User): UserProfile {
-    return {
-      id: user.id,
-      username: user.username,
-      win_count: user.win_count,
-      loss_count: user.loss_count,
-      draw_count: user.draw_count,
-      is_active: user.is_active
+      id: userProfile.id,
+      username: userProfile.username,
+      win_count: userProfile.win_count,
+      loss_count: userProfile.loss_count,
+      draw_count: userProfile.draw_count,
+      is_active: userProfile.is_active
     }
   }
 
   // register a new user
-  static async register(userData: CreateUserData): Promise<{ success: boolean; message: string; user?: UserProfile }> {
+  static async register(userData: CreateUserData): Promise<{ success: boolean; message: string; userProfile?: UserProfile }> {
     try {
       // validate input
       if (!userData.username || !userData.password) {
@@ -74,7 +62,7 @@ export class UserService {
       return {
         success: true,
         message: 'User registered successfully.',
-        user: UserService.toUserSession(user),
+        userProfile: UserService.toUserProfile(user),
       };
     } catch (error) {
       console.error('Registration error:', error);
@@ -83,7 +71,7 @@ export class UserService {
   }
 
   // login user
-  static async login(credentials: LoginCredentials): Promise<{ success: boolean; message: string; user?: UserProfile }> {
+  static async login(credentials: LoginCredentials): Promise<{ success: boolean; message: string; userProfile?: UserProfile }> {
     try {
       // validate input
       if (!credentials.username || !credentials.password) {
@@ -105,7 +93,7 @@ export class UserService {
       return {
         success: true,
         message: 'Login successful.',
-        user: UserService.toUserSession(user),
+        userProfile: UserService.toUserProfile(user),
       };
     } catch (error) {
       console.error('Login error:', error);
@@ -114,7 +102,7 @@ export class UserService {
   }
 
   // get user by ID
-  static async getUserById(id: number): Promise<{ success: boolean; message: string; user?: UserProfile }> {
+  static async getUserById(id: number): Promise<{ success: boolean; message: string; userProfile?: UserProfile }> {
     try {
       const user = await UserModel.findById(id);
       if (!user) {
@@ -124,7 +112,7 @@ export class UserService {
       return {
         success: true,
         message: 'User found.',
-        user: UserService.toUserProfile(user),
+        userProfile: UserService.toUserProfile(user),
       };
     } catch (error) {
       console.error('Get user error:', error);
@@ -133,7 +121,7 @@ export class UserService {
   }
 
   // update user
-  static async updateUser(id: number, updateData: UpdateUserData): Promise<{ success: boolean; message: string; user?: UserProfile }> {
+  static async updateUser(id: number, updateData: UpdateUserData): Promise<{ success: boolean; message: string; userProfile?: UserProfile }> {
     try {
       // check if username is unique (if being updated)
       if (updateData.username && await UserModel.usernameExists(updateData.username, id)) {
@@ -155,7 +143,7 @@ export class UserService {
       return {
         success: true,
         message: 'User updated successfully.',
-        user: UserService.toUserProfile(user),
+        userProfile: UserService.toUserProfile(user),
       };
     } catch (error) {
       console.error('Update user error:', error);
@@ -179,15 +167,15 @@ export class UserService {
   }
 
   // get all users (admin function)
-  static async getAllUsers(limit: number = 50, offset: number = 0): Promise<{ success: boolean; message: string; users?: UserProfile[] }> {
+  static async getAllUsers(limit: number = 50, offset: number = 0): Promise<{ success: boolean; message: string; userProfiles?: UserProfile[] }> {
     try {
       const users = await UserModel.findAll(limit, offset);
-      const userSessions = users.map(user => UserService.toUserProfile(user));
+      const userProfiles = users.map(user => UserService.toUserProfile(user));
 
       return {
         success: true,
         message: 'Users fetched successfully.',
-        users: userSessions,
+        userProfiles: userProfiles,
       };
     } catch (error) {
       console.error('Get all users error:', error);
@@ -196,7 +184,7 @@ export class UserService {
   }
 
   // atomic increment methods
-  static async incrementWin(userId: number): Promise<{ success: boolean; message: string; user?: UserProfile }> {
+  static async incrementWin(userId: number): Promise<{ success: boolean; message: string; userProfile?: UserProfile }> {
     try {
       const updated = await UserModel.incrementWinCount(userId);
       
@@ -213,7 +201,7 @@ export class UserService {
       return {
         success: true,
         message: 'Win count incremented successfully.',
-        user: UserService.toUserProfile(user),
+        userProfile: UserService.toUserProfile(user),
       };
     } catch (error) {
       console.error('Increment win error:', error);
@@ -221,7 +209,7 @@ export class UserService {
     }
   }
 
-  static async incrementLoss(userId: number): Promise<{ success: boolean; message: string; user?: UserProfile }> {
+  static async incrementLoss(userId: number): Promise<{ success: boolean; message: string; userProfile?: UserProfile }> {
     try {
       const updated = await UserModel.incrementLossCount(userId);
       
@@ -238,7 +226,7 @@ export class UserService {
       return {
         success: true,
         message: 'Loss count incremented successfully.',
-        user: UserService.toUserProfile(user),
+        userProfile: UserService.toUserProfile(user),
       };
     } catch (error) {
       console.error('Increment loss error:', error);
@@ -246,7 +234,7 @@ export class UserService {
     }
   }
 
-  static async incrementDraw(userId: number): Promise<{ success: boolean; message: string; user?: UserProfile }> {
+  static async incrementDraw(userId: number): Promise<{ success: boolean; message: string; userProfile?: UserProfile }> {
     try {
       const updated = await UserModel.incrementDrawCount(userId);
       
@@ -263,7 +251,7 @@ export class UserService {
       return {
         success: true,
         message: 'Draw count incremented successfully.',
-        user: UserService.toUserProfile(user),
+        userProfile: UserService.toUserProfile(user),
       };
     } catch (error) {
       console.error('Increment draw error:', error);

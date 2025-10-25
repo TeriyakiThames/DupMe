@@ -9,15 +9,15 @@ export class AuthController {
       const userData: CreateUserData = req.body;
       const result = await UserService.register(userData);
 
-      if (result.success && result.user) {
-        
+      if (result.success && result.userProfile) {
+
         req.session.isAuthenticated = true;
-        req.session.user = result.user;
+        req.session.userProfile = result.userProfile;
 
         res.status(201).json({
           success: true,
           message: result.message,
-          user: result.user,
+          userProfile: result.userProfile,
         });
       } else {
         res.status(400).json({
@@ -39,15 +39,15 @@ export class AuthController {
       const credentials: LoginCredentials = req.body;
       const result = await UserService.login(credentials);
 
-      if (result.success && result.user) {
+      if (result.success && result.userProfile) {
         
         req.session.isAuthenticated = true;
-        req.session.user = result.user;
+        req.session.userProfile = result.userProfile;
 
         res.status(200).json({
           success: true,
           message: result.message,
-          user: result.user,
+          userProfile: result.userProfile,
         });
       } else {
         res.status(401).json({
@@ -96,11 +96,11 @@ export class AuthController {
   
   static async me(req: Request, res: Response): Promise<void> {
     try {
-      if (req.session?.isAuthenticated && req.session?.user) {
+      if (req.session?.isAuthenticated && req.session?.userProfile) {
         res.status(200).json({
           success: true,
           message: 'User session retrieved.',
-          user: req.session.user,
+          userProfile: req.session.userProfile,
         });
       } else {
         res.status(401).json({
@@ -120,12 +120,12 @@ export class AuthController {
   
   static async checkAuth(req: Request, res: Response): Promise<void> {
     try {
-      const isAuthenticated = !!(req.session?.isAuthenticated && req.session?.user);
+      const isAuthenticated = !!(req.session?.isAuthenticated && req.session?.userProfile);
       
       res.status(200).json({
         success: true,
         isAuthenticated,
-        user: isAuthenticated ? req.session.user : null,
+        userProfile: isAuthenticated ? req.session.userProfile : null,
       });
     } catch (error) {
       console.error('Check auth controller error:', error);

@@ -1,17 +1,11 @@
 import { GameHeader } from "@/components/feature/GameHeader";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClientGameButtons } from "@/components/ui/ClientGameComponent"; 
-import { useAuth } from "@/hooks/useAuth";
 import { useSocket } from "@/hooks/useSocket";
 
 
 export default function ClassicGamePage() {
-  const { user, loading } = useAuth();
-  const socketApi = useSocket(
-      process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL_LOCAL as string,
-      user
-    );
-
+  const socketApi = useSocket();
 
   return (
     // Outer container: Full screen. Use p-8 for padding on the whole screen.

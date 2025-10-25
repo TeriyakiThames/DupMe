@@ -1,11 +1,28 @@
 import { Socket } from 'socket.io';
 import { UserProfile } from './auth';
 import { RoomManager } from '../managers/roomManager';  
+import { IncomingMessage } from 'http';
+import { SessionData } from 'express-session';
 
-export interface SocketWithUser extends Socket {
-  currentRoomId?: string;
-  userProfile?: UserProfile; // Optional, will be set when user provides profile in events
-}
+// Define SessionData
+declare module 'express-session' {
+    interface SessionData {
+        userProfile: UserProfile
+        currentRoomId?: string;
+        isAuthenticated?: boolean;
+    }
+};
+
+// Extend IncomingMessage to include SessionData
+interface SessionIncomingMessage extends IncomingMessage {
+    session: SessionData
+};
+
+// Extend Socket to include modified SessionIncomingMessage
+export interface SessionSocket extends Socket {
+    request: SessionIncomingMessage
+};
+
 
 export interface Room {
   id: string;

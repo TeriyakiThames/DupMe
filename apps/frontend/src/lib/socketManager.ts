@@ -1,15 +1,14 @@
 // socketManager.ts
 // Handles room, connection, and generic events
 import { Socket } from 'socket.io-client';
-import { initSocket, getSocket } from './socketClient';
-import { UserProfile } from '@/types/auth';
+import { initSocket } from './socketClient';
 
 export class SocketManager {
   private socket: Socket | null = null;
   private eventListeners: Map<string, Set<Function>> = new Map();
 
-  constructor(serverUrl: string, userProfile: UserProfile) {
-    this.socket = initSocket(serverUrl, userProfile);
+  constructor() {
+    this.socket = initSocket();
     this._setupListeners();
   }
 
@@ -60,7 +59,7 @@ export class SocketManager {
 }
 
 export let socketManager: SocketManager | null = null;
-export function createSocketManager(serverUrl: string, userProfile: UserProfile) {
-  socketManager = new SocketManager(serverUrl, userProfile);
+export function createSocketManager() {
+  socketManager = new SocketManager();
   return socketManager;
 }

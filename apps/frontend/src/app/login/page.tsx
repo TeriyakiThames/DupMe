@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { user, loading, error, login, register, logout, isAuthenticated } = useAuth();
+  const auth = useAuth();
   const [localError, setLocalError] = useState<string | null>(null);
 
   const clearError = () => {
@@ -21,12 +21,12 @@ export default function LoginPage() {
     e.preventDefault();
     let result;
     if (mode === 'login') {
-      result = await login(username, password);
+      result = await auth.login(username, password);
       if (result.success) router.push('/main');
       else if (result.error) setLocalError(result.error);
 
     } else {
-      result = await register(username, password);
+      result = await auth.register(username, password);
       if (result.success) {router.push('/login'); setMode('login');}
       else if (result.error) setLocalError(result.error);
     }
@@ -48,9 +48,9 @@ export default function LoginPage() {
           {mode === 'login' ? 'Login to DupMe' : 'Register for DupMe'}
         </h3>
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {(localError || error) && (
+          {(localError || auth.error) && (
             <div className="bg-red-100 border border-red-300 rounded p-2 text-red-800 text-sm">
-              {localError || error}
+              {localError || auth.error}
               <button type="button" onClick={clearError} className="ml-2 text-red-600 hover:text-red-800">×</button>
             </div>
           )}
@@ -73,9 +73,9 @@ export default function LoginPage() {
           <button
             type="submit"
             className="w-full bg-black text-white px-4 py-3 rounded-md font-semibold hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-            disabled={loading}
+            disabled={auth.loading}
           >
-            {loading ? (mode === 'login' ? 'Logging in...' : 'Registering...') : (mode === 'login' ? 'Login' : 'Register')}
+            {auth.loading ? (mode === 'login' ? 'Logging in...' : 'Registering...') : (mode === 'login' ? 'Login' : 'Register')}
           </button>
         </form>
         <div className="mt-6 text-center">

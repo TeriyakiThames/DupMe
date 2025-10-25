@@ -1,5 +1,5 @@
 import { Server as SocketIOServer } from 'socket.io';
-import { SocketWithUser, ServerEventBroadcast, ServerEventRequest, ServerEventResponse } from '../../types/socket';
+import { SessionSocket, ServerEventBroadcast, ServerEventRequest, ServerEventResponse } from '../../types/socket';
 import { ServerManager } from '../../managers/serverManager';
 import { UserProfile } from '../../types/auth';
 
@@ -7,7 +7,7 @@ import { UserProfile } from '../../types/auth';
  * Setup room-related socket events
  */
 export function setupRoomEvents(
-	socket: SocketWithUser, 
+	socket: SessionSocket, 
 	serverManager: ServerManager, 
 	io: SocketIOServer
 ): void {
@@ -30,7 +30,7 @@ export function setupRoomEvents(
 			
 			// Join the socket.io room
 			socket.join(roomId);
-			socket.currentRoomId = roomId;
+			socket.request.session.currentRoomId = roomId;
 
 			console.log(`🏠 Room ${roomId} created by ${player.username}`);
 
@@ -82,7 +82,7 @@ export function setupRoomEvents(
 
 			// Join the socket.io room
 			socket.join(data.roomId);
-			socket.currentRoomId = data.roomId;
+			socket.request.session.currentRoomId = data.roomId;
 
 			// Get room info
 			const room = serverManager.getRoomById(data.roomId);
@@ -121,18 +121,19 @@ export function setupRoomEvents(
 	 */
 	socket.on('leave-room', async (data: ServerEventRequest) => {
 		try {
-			if (!data.userProfile || !socket.currentRoomId) {
+			const session = socket.request.session;
+			if (!data.userProfile || !session.currentRoomId) {
 				socket.emit('error', { message: 'User profile required and must be in a room' });
 				return;
 			}
 
-			const roomId = socket.currentRoomId;
+			const roomId = session.currentRoomId;
 			const left = serverManager.leaveRoom(roomId, data.userProfile.id);
 
 			if (left) {
 				// Leave the socket.io room
 				socket.leave(roomId);
-				socket.currentRoomId = undefined;
+				socket.request.session.currentRoomId = undefined;
 
 				console.log(`🚪 Player ${data.userProfile.username} left room ${roomId}`);
 
@@ -172,8 +173,9 @@ export function setupRoomEvents(
 	 */
 	socket.on('get-room-info', async (data: ServerEventRequest) => {
 		try {
-			const roomId = data.roomId || socket.currentRoomId;
-			
+			const session = socket.request.session;
+			const roomId = data.roomId || session.currentRoomId;
+
 			if (!roomId) {
 				socket.emit('error', { message: 'No room ID provided or not in a room' });
 				return;

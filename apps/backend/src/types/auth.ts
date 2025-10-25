@@ -37,10 +37,3 @@ export interface UserProfile {
   is_active: boolean;
 }
 
-// extends express session interface
-declare module 'express-session' {
-  interface SessionData {
-    user?: UserProfile;
-    isAuthenticated?: boolean;
-  }
-}

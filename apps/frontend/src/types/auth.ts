@@ -30,7 +30,7 @@ export interface UserProfile {
 export interface AuthResponse<T = any> {
   success: boolean;
   message?: string;
-  user?: UserProfile;
+  userProfile?: UserProfile;
   error?: string;
 }
 
@@ -42,7 +42,7 @@ export interface UserResponse {
 }
 
 export interface AuthState {
-  user: UserProfile | null;
+  userProfile: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;

@@ -7,7 +7,7 @@ import LeaderboardTable from "@/components/feature/LeaderboardTable";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Page() {
-  const { user, loading: authLoading, topUsers } = useAuth();
+  const { userProfile, topUsers, loading: authLoading } = useAuth();
 
   return (
     <div className="min-h-screen w-screen bg-gray-50 flex flex-col items-center p-8 text-black">
@@ -24,7 +24,7 @@ export default function Page() {
           {authLoading ? (
             <div className="text-gray-400">Loading leaderboard...</div>
           ) : (
-            <LeaderboardTable players={topUsers} userId={user?.id} />
+            <LeaderboardTable players={topUsers} userId={userProfile?.id} />
           )}
         </div>
       </div>

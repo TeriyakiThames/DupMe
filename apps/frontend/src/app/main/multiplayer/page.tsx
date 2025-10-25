@@ -10,7 +10,7 @@ import { GameMode } from "@/components/feature/GameMode";
 
 export default function Page() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const handleModeSelect = (level: string) => {
     if (!isAuthenticated) {

@@ -6,21 +6,14 @@ export class UserController {
   // get current user profile
   static async getProfile(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({
-          success: false,
-          message: 'Authentication required.',
-        });
-        return;
-      }
-
-      const result = await UserService.getUserById(req.user.id);
+      const id = req.session.userProfile?.id as number;
+      const result = await UserService.getUserById(id);
 
       if (result.success) {
         res.status(200).json({
           success: true,
           message: result.message,
-          user: result.user,
+          userProfile: result.userProfile,
         });
       } else {
         res.status(404).json({
@@ -40,33 +33,27 @@ export class UserController {
   // update user profile
   static async updateProfile(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({
-          success: false,
-          message: 'Authentication required.',
-        });
-        return;
-      }
-
+      const id = req.session.userProfile?.id as number;
       const updateData: UpdateUserData = req.body;
-      const result = await UserService.updateUser(req.user.id, updateData);
+      const result = await UserService.updateUser(id, updateData);
 
       if (result.success) {
         // Update session with new user data
-        if (req.session && result.user) {
-          req.session.user = { id: result.user.id,
-                              username: result.user.username,
-                              win_count: result.user.win_count,
-                              loss_count: result.user.loss_count,
-                              draw_count: result.user.draw_count,
-                              is_active: result.user.is_active
+        if (req.session && result.userProfile) {
+          
+          req.session.userProfile = { id: result.userProfile.id,
+                              username: result.userProfile.username,
+                              win_count: result.userProfile.win_count,
+                              loss_count: result.userProfile.loss_count,
+                              draw_count: result.userProfile.draw_count,
+                              is_active: result.userProfile.is_active
            };
         }
 
         res.status(200).json({
           success: true,
           message: result.message,
-          user: result.user,
+          userProfile: result.userProfile,
         });
       } else {
         res.status(400).json({
@@ -86,15 +73,8 @@ export class UserController {
   // delete current user account
   static async deleteAccount(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({
-          success: false,
-          message: 'Authentication required.',
-        });
-        return;
-      }
-
-      const result = await UserService.deleteUser(req.user.id);
+      const id = req.session.userProfile?.id as number;
+      const result = await UserService.deleteUser(id);
 
       if (result.success) {
         // Destroy session after account deletion
@@ -134,7 +114,7 @@ export class UserController {
         res.status(200).json({
           success: true,
           message: result.message,
-          user: result.user,
+          userProfile: result.userProfile,
         });
       } else {
         res.status(404).json({
@@ -173,11 +153,11 @@ export class UserController {
         res.status(200).json({
           success: true,
           message: result.message,
-          users: result.users,
+          userProfiles: result.userProfiles,
           pagination: {
             limit,
             offset,
-            count: result.users?.length || 0,
+            count: result.userProfiles?.length || 0,
           },
         });
       } else {
@@ -199,21 +179,14 @@ export class UserController {
   // increment win count for current user
   static async incrementWin(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({
-          success: false,
-          message: 'Authentication required.',
-        });
-        return;
-      }
-
-      const result = await UserService.incrementWin(req.user.id);
+      const id = req.session.userProfile?.id as number;
+      const result = await UserService.incrementWin(id);
 
       if (result.success) {
         res.status(200).json({
           success: true,
           message: result.message,
-          user: result.user,
+          userProfile: result.userProfile,
         });
       } else {
         res.status(400).json({
@@ -233,21 +206,14 @@ export class UserController {
   // increment loss count for current user
   static async incrementLoss(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({
-          success: false,
-          message: 'Authentication required.',
-        });
-        return;
-      }
-
-      const result = await UserService.incrementLoss(req.user.id);
+      const id = req.session.userProfile?.id as number;
+      const result = await UserService.incrementLoss(id);
 
       if (result.success) {
         res.status(200).json({
           success: true,
           message: result.message,
-          user: result.user,
+          userProfile: result.userProfile,
         });
       } else {
         res.status(400).json({
@@ -267,21 +233,14 @@ export class UserController {
     // increment draw count for current user
   static async incrementDraw(req: Request, res: Response): Promise<void> {
     try {
-      if (!req.user) {
-        res.status(401).json({
-          success: false,
-          message: 'Authentication required.',
-        });
-        return;
-      }
-
-      const result = await UserService.incrementDraw(req.user.id);
+      const id = req.session.userProfile?.id as number;
+      const result = await UserService.incrementDraw(id);
 
       if (result.success) {
         res.status(200).json({
           success: true,
           message: result.message,
-          user: result.user,
+          userProfile: result.userProfile,
         });
       } else {
         res.status(400).json({

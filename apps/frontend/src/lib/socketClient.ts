@@ -1,15 +1,13 @@
 // socketClient.ts
 // Handles low-level socket.io connection
-import { UserProfile } from '@/types/auth';
 import { io, Socket } from 'socket.io-client';
+const URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL_LOCAL as string;
 
 let socket: Socket | null = null;
-
-export function initSocket(serverUrl: string, userProfile: UserProfile): Socket {
+export function initSocket(): Socket {
   if (!socket) {
-    socket = io(serverUrl, {
+    socket = io(URL, {
       withCredentials: true,
-      auth: { userProfile },
     });
   }
   return socket;
