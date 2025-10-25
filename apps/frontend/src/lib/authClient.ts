@@ -3,6 +3,7 @@
 import axios from 'axios';
 import { AuthResponse, UserResponse } from '@/types/auth';
 
+
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL_LOCAL;
 console.log('🖥️ Calling endpoint', API_URL);
 
@@ -11,8 +12,11 @@ export async function register(username: string, password: string): Promise<Auth
     const res = await axios.post(`${API_URL}/api/auth/register`, { username, password }, { withCredentials: true });
     const data = res.data;
     return { success: data.success, message: data.message, userProfile: data.user };
-  } catch (err: any) {
-    return { success: false, error: err.response?.data?.error || 'Registration failed' };
+  } catch (err : unknown) {
+    if (axios.isAxiosError(err)) {
+      return { success: false, error: err.response?.data?.error || 'Registration failed' };
+    }
+    return { success: false, error: 'Registration failed' };
   }
 }
 
@@ -21,8 +25,11 @@ export async function login(username: string, password: string): Promise<AuthRes
     const res = await axios.post(`${API_URL}/api/auth/login`, { username, password }, { withCredentials: true });
     const data = res.data;
     return { success: data.success, message: data.message, userProfile: data.user };
-  } catch (err: any) {
-    return { success: false, error: err.response?.data?.error || 'Login failed' };
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      return { success: false, error: err.response?.data?.error || 'Login failed' };
+    }
+    return { success: false, error: 'Login failed' };
   }
 }
 
@@ -32,8 +39,11 @@ export async function getProfile() : Promise<AuthResponse> {
         const data = res.data;
         return { success: true, message: data.message, userProfile: data.user };
 
-    } catch (err: any) {
-        return { success: false, error: err.response?.data?.error || 'Failed to fetch profile' };
+    } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+            return { success: false, error: err.response?.data?.error || 'Failed to fetch profile' };
+        }
+        return { success: false, error: 'Failed to fetch profile' };
     }
 }
 
@@ -43,9 +53,12 @@ export async function logout(): Promise<AuthResponse> {
         const data = res.data;
         return { success: data.success, message: data.message };
 
-    } catch (err : any) {
+    } catch (err : unknown) {
         console.error('Logout failed', err);
-        return { success: false, error: err.response?.data?.error || 'Logout failed' }; 
+        if (axios.isAxiosError(err)) {
+            return { success: false, error: err.response?.data?.error || 'Logout failed' };
+        }
+        return { success: false, error: 'Logout failed' };
     }
 }
 

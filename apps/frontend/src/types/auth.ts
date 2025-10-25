@@ -27,7 +27,7 @@ export interface UserProfile {
   total_points?: number;
 }
 
-export interface AuthResponse<T = any> {
+export interface AuthResponse {
   success: boolean;
   message?: string;
   userProfile?: UserProfile;
@@ -49,11 +49,11 @@ export interface AuthState {
 }
 
 export interface UseAuthReturn extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<AuthResponse<UserProfile>>;
-  register: (userData: CreateUserData) => Promise<AuthResponse<UserProfile>>;
+  login: (credentials: LoginCredentials) => Promise<AuthResponse>;
+  register: (userData: CreateUserData) => Promise<AuthResponse>;
   logout: () => Promise<AuthResponse>;
   checkAuth: () => Promise<void>;
-  updateProfile: (updateData: Partial<Pick<UserProfile, 'username'>>) => Promise<AuthResponse<UserProfile>>;
+  updateProfile: (updateData: Partial<Pick<UserProfile, 'username'>>) => Promise<AuthResponse>;
   clearError: () => void;
   refreshProfile: () => Promise<void>;
 }

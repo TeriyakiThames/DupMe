@@ -8,7 +8,8 @@ import Piano from "@/components/feature/Piano";
 import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from '@/hooks/useSocket';
 import type { Note, GameMode } from "@/types/components";
-import { RoomEventBroadcast, RoomEventRequest, RoomEventResponse } from "@/types/socketGame";
+import { RoomEventBroadcast, RoomEventRequest, RoomEventResponse, GameState } from "@/types/socketGame";
+import { ServerEventBroadcast } from "@/types/socket";
 
 export default function GamePage() {
   const {isConnected, onRoomEvent, 
@@ -16,14 +17,14 @@ export default function GamePage() {
           getRoomInfo, saveSequence, submitRoundResult, 
           getGameState
    } = useSocket();
-  const { userProfile : user } = useAuth();
+  const { userProfile } = useAuth();
    
 
   // State variables
   const [roomId, setRoomId] = useState<string>(""); 
   const [playerPoints, setPlayerPoints] = useState<Record<string, number>>({});
   const [delta, setDelta] = useState<[string, number]>();
-  const [gameState, setGameState] = useState<any>(null);
+  const [gameState, setGameState] = useState<GameState | null>(null);
   const [mySeq, setMySeq] = useState<Note[]>([]);
   const [seq, SetSeq] = useState<Note[]>([]);
   const [iAmActing, setIAmActing] = useState<boolean>(false);
@@ -40,12 +41,12 @@ export default function GamePage() {
   const [remoteActiveNotes, setRemoteActiveNotes] = useState<Note[]>([]);
   
 
-  const handleRoomInfo = (data : RoomEventBroadcast) => setRoomId(data.roomId as string);
+  const handleRoomInfo = (data : ServerEventBroadcast) => setRoomId(data.roomId as string);
   const handleGameState = (data : RoomEventBroadcast) => {
-    setGameState(data);
+    setGameState(data.gameState as GameState);
     if (data.usernameDelta) setDelta(data.usernameDelta);
     if (data.playerPoints) setPlayerPoints(data.playerPoints);
-    if (data.gameState?.questionPlayer) setTurn(data.gameState.questionPlayer.id === user?.id ? "Create" : "Reproduce");
+    if (data.gameState?.questionPlayer) setTurn(data.gameState.questionPlayer.id === userProfile?.id ? "Create" : "Reproduce");
     setIAmActing(turn === "Create");
   }
   const handleSequenceReceived = (data : RoomEventBroadcast) => {
@@ -62,18 +63,18 @@ export default function GamePage() {
     }
   }
   const handleSaveSequence = () => {
-    if (!isConnected || !user) return;
-    saveSequence({ user, sequence: mySeq });
+    if (!isConnected || !userProfile) return;
+    saveSequence({ userProfile, sequence: mySeq });
   }
   const handleSubmitRoundResult = () => {
-    if (!isConnected || !user) return;
+    if (!isConnected || !userProfile) return;
     let pointsEarned = 0;
     for (let i = 0; i < seq.length; i++) {
       if (i < mySeq.length) {
         if (mySeq[i] === seq[i]) pointsEarned++;
       }
     }
-    submitRoundResult({ user, pointsEarned });
+    submitRoundResult({ userProfile, pointsEarned });
   }
   const handleSubmitOrSave = () => {
     if (turn === "Create") handleSaveSequence();
@@ -87,23 +88,23 @@ export default function GamePage() {
   };
 
   useEffect(() => {
-  if (!isConnected || !user) return;
+  if (!isConnected || !userProfile) return;
 
     onRoomEvent('room-info', handleRoomInfo);
-    getRoomInfo(user);
+    getRoomInfo({ userProfile });
 
-    onRoomEvent('game-state', handleGameState);
-    getGameState(user);
+    onGameEvent('game-state', handleGameState);
+    getGameState({ userProfile });
 
 
     return () => {
       offRoomEvent('room-info', handleRoomInfo);
-      offRoomEvent('game-state', handleGameState);  
+      offGameEvent('game-state', handleGameState);
     };
-  }, [isConnected, user]);
+  }, [isConnected, userProfile]);
 
   useEffect(() => {
-  if (!isConnected || !user) return;
+  if (!isConnected || !userProfile) return;
     onGameEvent('round-updated', handleRoundUpdated);
     onGameEvent('sequence-received', handleSequenceReceived);
 
@@ -139,10 +140,10 @@ export default function GamePage() {
     <div className="mx-auto flex min-h-[100dvh] w-screen flex-col gap-6 p-6 bg-white">
       {/* Top bar */}
       <div className="grid grid-cols-3 items-end">
-        <ScorePanel title="You" playerPoints={Object.fromEntries(Object.entries(playerPoints).filter(([k, v])=> k === user?.username))} usernameDelta={delta} />
+        <ScorePanel title="You" playerPoints={Object.fromEntries(Object.entries(playerPoints).filter(([k, v])=> k === userProfile?.username))} usernameDelta={delta} />
         <div className="flex flex-col items-center justify-center gap-4">
           <RoundHeader
-            round={gameState.turnCount}
+            round={gameState?.turnCount}
             subtext={headerSubtext}
             subtextTone={subtextTone}
           />
@@ -154,7 +155,7 @@ export default function GamePage() {
         </div>
         <ScorePanel
           title="Opponents"
-          playerPoints={Object.fromEntries(Object.entries(playerPoints).filter(([k, v])=> k !== user?.username))}
+          playerPoints={Object.fromEntries(Object.entries(playerPoints).filter(([k, v])=> k !== userProfile?.username))}
           usernameDelta={delta}
           align="right"
         />

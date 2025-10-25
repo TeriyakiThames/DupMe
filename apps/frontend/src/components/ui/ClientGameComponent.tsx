@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useAuth } from '@/hooks/useAuth';
 import { ClientGameComponentProps } from '@/types/components';
+import { ServerEventBroadcast } from '@/types/socket';
 
 export function ClientGameButtons({
   joinRoom,
@@ -39,17 +40,18 @@ export function ClientGameButtons({
 
     try {
       // First check if room exists
-      const roomInfo = await getRoomInfo(roomId.trim());
+      const roomInfo = await getRoomInfo({ roomId: roomId.trim() }) as ServerEventBroadcast;
       if (!roomInfo.success) {
         setError('Room not found or is full.');
         return;
       }
 
       // Try to join the room
-      const joinResult = await joinRoom(roomId.trim());
+      const joinResult = await joinRoom({ roomId: roomId.trim() }) as ServerEventBroadcast;
       if (joinResult.success) {
         router.push(`/room/${roomId.trim()}`);
       } else {
+
         setError(joinResult.error || 'Failed to join room.');
       }
     } catch (err) {

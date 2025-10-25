@@ -3,13 +3,16 @@
 // useSocket.ts
 // React hook to unify socketManager and socketGameManager
 import { useEffect, useRef, useState } from 'react';
-import { createSocketManager, socketManager } from '../lib/socketManager';
-import { createSocketGameManager, socketGameManager } from '../lib/socketGameManager';
+import { createSocketManager, SocketManager, socketManager } from '../lib/socketManager';
+import { createSocketGameManager, SocketGameManager, socketGameManager } from '../lib/socketGameManager';
 import { UserProfile } from '@/types/auth';
+import { Socket } from 'socket.io-client';
+import { ServerEventBroadcast, ServerEventRequest } from '@/types/socket';
+import { RoomEventBroadcast, RoomEventRequest } from '@/types/socketGame';
 
 export function useSocket() {
-  const managerRef = useRef<any>(null);
-  const gameManagerRef = useRef<any>(null);
+  const managerRef = useRef<SocketManager | null>(null);
+  const gameManagerRef = useRef<SocketGameManager | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
@@ -47,21 +50,21 @@ export function useSocket() {
     isConnected,
 
     // Room actions
-    createRoom: (data: any) => managerRef.current?.createRoom(data),
-    joinRoom: (data: any) => managerRef.current?.joinRoom(data),
-    leaveRoom: (data: any) => managerRef.current?.leaveRoom(data),
-    getRoomInfo: (data: any) => managerRef.current?.getRoomInfo(data),
+    createRoom: (data: ServerEventRequest) => managerRef.current?.createRoom(data),
+    joinRoom: (data: ServerEventRequest) => managerRef.current?.joinRoom(data),
+    leaveRoom: (data: ServerEventRequest) => managerRef.current?.leaveRoom(data),
+    getRoomInfo: (data: ServerEventRequest) => managerRef.current?.getRoomInfo(data),
     getServerStats: () => managerRef.current?.getServerStats(),
-    onRoomEvent: (event: string, cb: Function) => managerRef.current?.on(event, cb),
-    offRoomEvent: (event: string, cb: Function) => managerRef.current?.off(event, cb),
+    onRoomEvent: (event: string, cb: (data: ServerEventBroadcast ) => void) => managerRef.current?.on(event, cb),
+    offRoomEvent: (event: string, cb: (data: ServerEventBroadcast ) => void) => managerRef.current?.off(event, cb),
     // Game actions
-    startGame: (data: any) => gameManagerRef.current?.startGame(data),
-    saveSequence: (data: any) => gameManagerRef.current?.saveSequence(data),
-    submitRoundResult: (data: any) => gameManagerRef.current?.submitRoundResult(data),
-    endGame: (data: any) => gameManagerRef.current?.endGame(data),
-    resetGame: (data: any) => gameManagerRef.current?.resetGame(data),
-    getGameState: (data: any) => gameManagerRef.current?.getGameState(data),
-    onGameEvent: (event: string, cb: Function) => gameManagerRef.current?.on(event, cb),
-    offGameEvent: (event: string, cb: Function) => gameManagerRef.current?.off(event, cb),
+    startGame: (data: RoomEventRequest) => gameManagerRef.current?.startGame(data),
+    saveSequence: (data: RoomEventRequest) => gameManagerRef.current?.saveSequence(data),
+    submitRoundResult: (data: RoomEventRequest) => gameManagerRef.current?.submitRoundResult(data),
+    endGame: (data: RoomEventRequest) => gameManagerRef.current?.endGame(data),
+    resetGame: (data: RoomEventRequest) => gameManagerRef.current?.resetGame(data),
+    getGameState: (data: RoomEventRequest) => gameManagerRef.current?.getGameState(data),
+    onGameEvent: (event: string, cb: (data : RoomEventBroadcast) => void) => gameManagerRef.current?.on(event, cb),
+    offGameEvent: (event: string, cb: (data : RoomEventBroadcast) => void) => gameManagerRef.current?.off(event, cb),
   };
 }

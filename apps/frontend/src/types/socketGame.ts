@@ -5,7 +5,7 @@ export interface GameState {
   currentPattern: string[];         // pattern created by questionPlayer
   questionPlayer?: UserProfile;      // player who creates the pattern
   answerPlayers?: UserProfile[];     // players who answer the pattern
-  turnCounts: number;                // number of turns taken
+  turnCount: number;                // number of turns taken
   roundNumber: number;               // current round number
   isGameActive: boolean;             // whether game is currently active
   lastSequenceTime?: Date;           // timestamp of last sequence save

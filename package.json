@@ -5,7 +5,7 @@
 		"prettier": "^3.6.2"
 	},
 	"scripts": {
-		"dev": "concurrently \"pnpm --filter backend start\" \"pnpm --filter frontend dev\""
+		"dev": "concurrently \"pnpm --filter backend start\" \"pnpm --filter frontend build && pnpm --filter frontend start\""
 	},
 	"dependencies": {
 		"jsonwebtoken": "^9.0.2"

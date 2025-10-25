@@ -1,3 +1,5 @@
+"use client";
+
 import { GameHeader } from "@/components/feature/GameHeader";
 import { BackButton } from "@/components/ui/BackButton";
 import { ClientGameButtons } from "@/components/ui/ClientGameComponent"; 

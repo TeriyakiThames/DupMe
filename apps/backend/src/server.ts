@@ -21,10 +21,10 @@ app.use(cors({
   credentials: true,    
 }));
 
-app.options("*", cors({
-  origin: true,
-  credentials: true,
-}));
+// app.options("*", cors({
+//   origin: true,
+//   credentials: true,
+// }));
 
 const expressSession = session({
   secret: process.env.SESSION_SECRET || 'default-secret',
@@ -113,4 +113,3 @@ process.on('SIGTERM', () => {
 		process.exit(0);
 	});
 });
-  

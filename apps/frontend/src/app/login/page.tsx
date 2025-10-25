@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState } from 'react';
 import LogoHeader from '@/components/logo/DupMe';
@@ -81,7 +81,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           {mode === 'login' ? (
             <span>
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button className="text-blue-600 hover:underline" type="button" onClick={() => handleModeSwitch('register')}>
                 Register
               </button>

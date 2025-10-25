@@ -5,19 +5,22 @@ import { useRouter } from 'next/navigation';
 import LogoHeader from '@/components/logo/DupMe';
 import { useSocket } from '@/hooks/useSocket';
 import { useAuth } from '@/hooks/useAuth';
+import { ServerEventBroadcast } from '@/types/socket';
+
+interface Stats {
+    totalRooms: number;
+    activeRooms: number;
+    totalUsers: number;
+    onlineUsers: Set<string>;
+    emptyRooms: number;
+}
 
 export default function HomePage() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const router = useRouter();
 
   const [onlinePlayers, setOnlinePlayers] = useState<string[]>([]);
-  const [stats, setStats] = useState<null | {
-    totalRooms: number;
-    activeRooms: number;
-    totalUsers: number;
-    onlineUsers: Set<string>;
-    emptyRooms: number;
-  }>(null);
+  const [stats, setStats] = useState<null | Stats>(null);
   
   const { userProfile : user, loading } = useAuth();
   const socketApi = useSocket();
@@ -26,9 +29,10 @@ export default function HomePage() {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
-  const handleServersStats = (data: any) => {
-    setStats(data);
-    setOnlinePlayers(Array.from(data.onlineUsers));
+  const handleServersStats = (data: ServerEventBroadcast ) => {
+    const stats = data as Stats; 
+    setStats(stats);
+    setOnlinePlayers(Array.from(stats.onlineUsers));
   }
  
   useEffect(() => {

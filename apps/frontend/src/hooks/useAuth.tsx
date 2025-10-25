@@ -20,7 +20,7 @@ interface AuthContextType {
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
-export const AuthProvider = ({ children } : { children: any }) => {
+export const AuthProvider = ({ children } : { children: React.ReactNode }) => {
   const auth = useProvideAuth();
 
   return (
@@ -60,7 +60,7 @@ function useProvideAuth() {
       const leaderboardRes = await authClient.getLeaderBoard();
       if (leaderboardRes.success && leaderboardRes.topUsers) {
         setTopUsers(leaderboardRes.topUsers.map(
-          (u: any) => ({
+          (u: UserProfile) => ({
             ...u,
             total_points: u.win_count * 3 + u.draw_count * 1 - u.loss_count * 1
           })

@@ -2,10 +2,11 @@
 // Handles room, connection, and generic events
 import { Socket } from 'socket.io-client';
 import { initSocket } from './socketClient';
+import { ServerEventRequest, ServerEventBroadcast } from '../types/socket';
 
 export class SocketManager {
-  private socket: Socket | null = null;
-  private eventListeners: Map<string, Set<Function>> = new Map();
+  public socket: Socket | null = null;
+  private eventListeners: Map<string, Set<(data: ServerEventBroadcast) => void>> = new Map();
 
   constructor() {
     this.socket = initSocket();
@@ -25,32 +26,32 @@ export class SocketManager {
     this.socket.on('error', (data) => this._emitToListeners('error', data));
   }
 
-  private _emitToListeners(event: string, ...args: any[]) {
+  private _emitToListeners(event: string, data: ServerEventBroadcast) {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
-      listeners.forEach(cb => cb(...args));
+      listeners.forEach(cb => cb(data));
     }
   }
 
-  on(event: string, cb: Function) {
+  on(event: string, cb: (data: ServerEventBroadcast) => void) {
     if (!this.eventListeners.has(event)) this.eventListeners.set(event, new Set());
     this.eventListeners.get(event)!.add(cb);
   }
-  off(event: string, cb: Function) {
+  off(event: string, cb: (data: ServerEventBroadcast) => void) {
     this.eventListeners.get(event)?.delete(cb);
   }
 
   // Room actions
-  createRoom(data: any) {
+  createRoom(data: ServerEventRequest) {
     this.socket?.emit('create-room', data);
   }
-  joinRoom(data: any) {
+  joinRoom(data: ServerEventRequest) {
     this.socket?.emit('join-room', data);
   }
-  leaveRoom(data: any) {
+  leaveRoom(data: ServerEventRequest) {
     this.socket?.emit('leave-room', data);
   }
-  getRoomInfo(data: any) {
+  getRoomInfo(data: ServerEventRequest) {
     this.socket?.emit('get-room-info', data);
   }
   getServerStats() {

@@ -1,7 +1,9 @@
 import { UserProfile } from "./auth";
+import { ServerEventRequest } from "./socket";
+import { RoomEventRequest } from "./socketGame";
 
 export interface RoundHeaderProps {
-	round: number;
+	round?: number;
 	subtext: string;
 	subtextTone?: "easy" | "danger" | "muted";
 }
@@ -49,7 +51,7 @@ export interface ScorePanelProps {
 }
 
 export interface ClientGameComponentProps {
-	joinRoom: (data: any) => any;
-	getRoomInfo: (data: any) => any;
+	joinRoom: (data: ServerEventRequest) => unknown;
+	getRoomInfo: (data: ServerEventRequest) => unknown;
 	isConnected: boolean;
 }

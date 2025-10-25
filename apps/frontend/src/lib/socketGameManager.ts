@@ -2,10 +2,12 @@
 // Handles game-specific socket events
 import { Socket } from 'socket.io-client';
 import { getSocket } from './socketClient';
+import { RoomEventBroadcast, RoomEventRequest } from '@/types/socketGame';
+import { ServerEventBroadcast } from '@/types/socket';
 
 export class SocketGameManager {
   private socket: Socket | null = null;
-  private eventListeners: Map<string, Set<Function>> = new Map();
+  private eventListeners: Map<string, Set<(data: RoomEventBroadcast) => void>> = new Map();
 
   constructor() {
     this.socket = getSocket();
@@ -25,38 +27,38 @@ export class SocketGameManager {
     this.socket.on('error', (data) => this._emitToListeners('error', data));
   }
 
-  private _emitToListeners(event: string, ...args: any[]) {
+  private _emitToListeners(event: string, data: (RoomEventBroadcast)) {
     const listeners = this.eventListeners.get(event);
-    if (listeners) {
-      listeners.forEach(cb => cb(...args));
+    if (listeners) { 
+      listeners.forEach(cb => cb(data));
     }
   }
 
-  on(event: string, cb: Function) {
+  on(event: string, cb: (data: RoomEventBroadcast ) => void) {
     if (!this.eventListeners.has(event)) this.eventListeners.set(event, new Set());
     this.eventListeners.get(event)!.add(cb);
   }
-  off(event: string, cb: Function) {
+  off(event: string, cb: (data: RoomEventBroadcast) => void) {
     this.eventListeners.get(event)?.delete(cb);
   }
 
   // Game actions
-  startGame(data: any) {
+  startGame(data: RoomEventRequest) {
     this.socket?.emit('start-game', data);
   }
-  saveSequence(data: any) {
+  saveSequence(data: RoomEventRequest) {
     this.socket?.emit('save-sequence', data);
   }
-  submitRoundResult(data: any) {
+  submitRoundResult(data: RoomEventRequest) {
     this.socket?.emit('submit-round-result', data);
   }
-  endGame(data: any) {
+  endGame(data: RoomEventRequest) {
     this.socket?.emit('end-game', data);
   }
-  resetGame(data: any) {
+  resetGame(data: RoomEventRequest) {
     this.socket?.emit('reset-game', data);
   }
-  getGameState(data: any) {
+  getGameState(data: RoomEventRequest) {
     this.socket?.emit('get-game-state', data);
   }
 }
