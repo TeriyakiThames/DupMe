@@ -1,0 +1,1 @@
+npx @tailwindcss/cli -i src/css/main.css -o src/css/tailwind.css --watch

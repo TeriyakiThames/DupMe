@@ -1,7 +1,11 @@
 import React from 'react';
-import LeaderboardRow from './LeaderboardRow';
-import type {  LeaderboardTableProps } from '@/types/components';
-import { UserProfile } from '@/types/auth';
+import LeaderboardRow from '@/components/feature/leaderboardRow';
+import type { UserProfile } from '@/types/auth';
+
+interface LeaderboardTableProps {
+	players: UserProfile[];
+	userId?: number;
+}
 
 const LeaderboardTable: React.FC<LeaderboardTableProps> = ({ players, userId }) => {
   return (

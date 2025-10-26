@@ -1,6 +1,4 @@
-import { UserProfile } from "./auth";
-import { Note, GameMode } from "./components";
-import { Socket } from "socket.io-client";
+import type { UserProfile } from "@/types/auth";
 
 // Client to server requests
 export interface ServerEventRequest {
@@ -9,26 +7,6 @@ export interface ServerEventRequest {
   metadata?: Record<string, string>;
   roomId?: string;
 }
-
-
-// Server to client responses
-// export interface ServerEventResponse {
-//   success: boolean;
-//   roomId: string;
-//   message: string;
-//   playerCount?: number;
-//   idUsernameMap?: Record<number, string>;
-//   maxUsers?: number;
-//   createdAt?: string;
-//   lastActivity?: string;
-//   metadata?: Record<string, any>;
-//   totalRooms?: number;
-//   activeRooms?: number;
-//   totalUsers?: number;
-//   emptyRooms?: number;
-//   onlineUsers?: Set<string>;
-
-// }
 
 // Server to client broadcasts
 export interface ServerEventBroadcast {

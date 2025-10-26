@@ -1,14 +1,10 @@
 "use client"
 
-// useSocket.ts
-// React hook to unify socketManager and socketGameManager
 import { useEffect, useRef, useState } from 'react';
-import { createSocketManager, SocketManager, socketManager } from '../lib/socketManager';
-import { createSocketGameManager, SocketGameManager, socketGameManager } from '../lib/socketGameManager';
-import { UserProfile } from '@/types/auth';
-import { Socket } from 'socket.io-client';
-import { ServerEventBroadcast, ServerEventRequest } from '@/types/socket';
-import { RoomEventBroadcast, RoomEventRequest } from '@/types/socketGame';
+import { createSocketManager, SocketManager } from '@/managers/socketManager';
+import { createSocketGameManager, SocketGameManager } from '@/managers/socketGameManager';
+import type { ServerEventBroadcast, ServerEventRequest } from '@/types/socket';
+import type { RoomEventBroadcast, RoomEventRequest } from '@/types/gameSocket';
 
 export function useSocket() {
   const managerRef = useRef<SocketManager | null>(null);
@@ -16,19 +12,6 @@ export function useSocket() {
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
-    // NOTE: Handled in socket backend
-    // Only initialize socket managers if userProfile is valid and no socket exists
-    // if (!userProfile) {
-    //   // Disconnect socket on logout or missing user
-    //   if (managerRef.current?.socket) {
-    //     managerRef.current.socket.disconnect();
-    //   }
-    //   managerRef.current = null;
-    //   gameManagerRef.current = null;
-    //   setIsConnected(false);
-    //   return;
-    // }
-
     // Singleton socket: only create if not already connected
     if (!managerRef.current) {
       managerRef.current = createSocketManager();

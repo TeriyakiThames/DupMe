@@ -1,6 +1,16 @@
 import React from 'react';
 import clsx from 'clsx';
-import type { LeaderboardRowProps } from '@/types/components';
+
+export interface LeaderboardRowProps {
+	playerRank: number;
+	playerName: string;
+	wins: number;
+	losses: number;
+	draws: number;
+	totalPts: number;
+	isCurrentUser: boolean;
+}
+
 
 const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
   playerRank,

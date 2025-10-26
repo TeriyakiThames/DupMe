@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/Button"; 
-import { Input } from "@/components/ui/Input";   
+import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button"; 
+import { Input } from "@/components/ui/input";   
 
 export function RoomCard() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [roomId, setRoomId] = useState('1134');
 
   const handleCancel = () => {
     console.log("Cancel create room page.");
     // Navigate to the separate 'Create a room' page
-    router.push('/classic');
+    navigate('/classic');
   };
 
   return (

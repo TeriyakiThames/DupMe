@@ -1,7 +1,9 @@
 "use client";
+
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { NOTE_LABELS, Note, PianoProps } from "@/types/components";
-import { classNames } from "@/lib/time";
+import { NOTE_LABELS, type Note } from "@/types/props";
+import { classNames } from "@/lib/utils";
+
 
 
 const KEY_TO_NOTE: Record<string, Note> = {
@@ -12,6 +14,16 @@ const KEY_TO_NOTE: Record<string, Note> = {
   g: "G",
   h: "A",
 };
+
+interface PianoProps {
+	disabled: boolean;
+	onPress: (n: Note) => void;
+	orderOverlay?: Record<Note, number[]> | null;
+	remoteActiveNotes: Note[];
+	livePressVisible?: boolean;
+	showIndexAboveOnPress?: boolean;
+}
+
 
 // Preload audio once per note
 const audioCache: Partial<Record<Note, HTMLAudioElement>> = {};
@@ -38,7 +50,7 @@ const PianoKey: React.FC<{
       "relative bg-white h-100 rounded-lg border text-lg font-semibold transition-all",
       "mx-1 sm:mx-2",
       "border-light-grey bg-white hover:bg-pressed active:scale-[0.99]",
-      isActive && "!bg-pressed",
+      isActive && "bg-pressed!",
       disabled && "opacity-100 cursor-not-allowed"
     )}
   >

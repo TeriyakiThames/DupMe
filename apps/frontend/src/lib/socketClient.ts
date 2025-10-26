@@ -1,7 +1,5 @@
-// socketClient.ts
-// Handles low-level socket.io connection
 import { io, Socket } from 'socket.io-client';
-const URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL_LOCAL as string;
+const URL = process.env.BACKEND_URL || 'https://api.poppoo.xyz';
 
 let socket: Socket | null = null;
 export function initSocket(): Socket {

@@ -1,7 +1,12 @@
 
 "use client";
 import React from "react";
-import type { RoundHeaderProps } from "@/types/components";
+
+interface RoundHeaderProps {
+	round?: number;
+	subtext: string;
+	subtextTone?: "easy" | "danger" | "muted";
+}
 
 const toneToClass: Record<
   NonNullable<RoundHeaderProps["subtextTone"]>,

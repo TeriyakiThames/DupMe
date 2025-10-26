@@ -1,7 +1,13 @@
 
 "use client";
+
 import React, { useEffect, useRef, useState } from "react";
-import type { CountdownTimerProps } from "@/types/components";
+
+interface CountdownTimerProps {
+  durationSec: number;
+  running: boolean;
+  onComplete?: () => void;
+}
 
 const CountdownTimer: React.FC<CountdownTimerProps> = ({
   durationSec,
@@ -9,28 +15,23 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
   onComplete,
 }) => {
   const [remaining, setRemaining] = useState(durationSec);
-
-  // use explicit null checks; keep types narrow
   const rafRef = useRef<number | null>(null);
   const endAtRef = useRef<number | null>(null);
 
-  // reset when duration changes
   useEffect(() => {
     setRemaining(durationSec);
     endAtRef.current = null;
   }, [durationSec]);
 
   useEffect(() => {
-    // if not running, just ensure no RAF is active
     if (!running) {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
       }
-      return; // <- returns void
+      return; 
     }
 
-    // set a new absolute deadline
     endAtRef.current = performance.now() + durationSec * 1000;
 
     const tick = () => {
@@ -42,7 +43,6 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
       setRemaining(secs);
 
       if (msLeft <= 0) {
-        // done
         if (rafRef.current !== null) {
           cancelAnimationFrame(rafRef.current);
           rafRef.current = null;
@@ -56,7 +56,6 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
     rafRef.current = requestAnimationFrame(tick);
 
-    // CLEANUP must always return void
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);

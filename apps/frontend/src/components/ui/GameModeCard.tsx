@@ -1,5 +1,5 @@
 import React from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 interface GameModeCardProps {
   title: string;
@@ -19,7 +19,7 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   textColor = "text-black",
 }) => {
   return (
-    <Link href={href}>
+    <Link to={href}>
       <div
         className={`rounded-2xl p-8 w-72 h-72 flex flex-col items-center justify-center 
                     shadow-md cursor-pointer transform transition-all duration-300 

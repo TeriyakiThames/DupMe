@@ -58,5 +58,3 @@ export interface UseAuthReturn extends AuthState {
   refreshProfile: () => Promise<void>;
 }
 
-
-

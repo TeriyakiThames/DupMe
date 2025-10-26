@@ -1,8 +1,13 @@
 
 "use client";
 import React from "react";
-import { ScorePanelProps } from "@/types/components";
 
+interface ScorePanelProps {
+  title: string;
+  playerPoints: Record<string, number>;
+  usernameDelta?: [string, number]; 
+  align?: "left" | "right";
+}
 
 const ScorePanel: React.FC<ScorePanelProps> = ({ title, playerPoints, usernameDelta, align = "left" }) => {
   return (

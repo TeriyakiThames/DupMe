@@ -1,15 +1,12 @@
-// authClient.ts
-// Handles authentication API requests and token management
 import axios from 'axios';
-import { AuthResponse, UserResponse } from '@/types/auth';
+import type { AuthResponse, UserResponse } from '@/types/auth';
 
-
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL_LOCAL;
-console.log('🖥️ Calling endpoint', API_URL);
+const URL = process.env.BACKEND_URL || 'https://api.poppoo.xyz' ;
+console.log('🖥️ Calling endpoint', URL);
 
 export async function register(username: string, password: string): Promise<AuthResponse> {
   try {
-    const res = await axios.post(`${API_URL}/api/auth/register`, { username, password }, { withCredentials: true });
+    const res = await axios.post(`${URL}/auth/register`, { username, password }, { withCredentials: true });
     const data = res.data;
     return { success: data.success, message: data.message, userProfile: data.user };
   } catch (err : unknown) {
@@ -22,7 +19,7 @@ export async function register(username: string, password: string): Promise<Auth
 
 export async function login(username: string, password: string): Promise<AuthResponse> {
   try {
-    const res = await axios.post(`${API_URL}/api/auth/login`, { username, password }, { withCredentials: true });
+    const res = await axios.post(`${URL}/auth/login`, { username, password }, { withCredentials: true });
     const data = res.data;
     return { success: data.success, message: data.message, userProfile: data.user };
   } catch (err: unknown) {
@@ -35,7 +32,7 @@ export async function login(username: string, password: string): Promise<AuthRes
 
 export async function getProfile() : Promise<AuthResponse> {
     try {
-        const res = await axios.get(`${API_URL}/api/auth/me`, { withCredentials: true });
+        const res = await axios.get(`${URL}/auth/me`, { withCredentials: true });
         const data = res.data;
         return { success: true, message: data.message, userProfile: data.user };
 
@@ -49,7 +46,7 @@ export async function getProfile() : Promise<AuthResponse> {
 
 export async function logout(): Promise<AuthResponse> {
     try {
-        const res = await axios.post(`${API_URL}/api/auth/logout`, {}, { withCredentials: true });
+        const res = await axios.post(`${URL}/auth/logout`, {}, { withCredentials: true });
         const data = res.data;
         return { success: data.success, message: data.message };
 
@@ -64,7 +61,7 @@ export async function logout(): Promise<AuthResponse> {
 
 export async function getLeaderBoard() : Promise<UserResponse> {
     try {
-        const res = await axios.get(`${API_URL}/api/users`);
+        const res = await axios.get(`${URL}/users`);
         const data = res.data;
         const topUsers = data.users
         return {
@@ -72,11 +69,15 @@ export async function getLeaderBoard() : Promise<UserResponse> {
             message: data.message,
             topUsers
         };
-    } catch (error) {
-        return {
-            success: false,
-            error: 'Failed to fetch leaderboard'
+    } catch (error : unknown) {
+        if (axios.isAxiosError(error)) {
+            return {
+                success: false,
+                error: error.response?.data?.error || 'Failed to fetch leaderboard'
+            };
         }
+
+        return { success: false, error: 'Failed to fetch leaderboard' };
     }
 }
 

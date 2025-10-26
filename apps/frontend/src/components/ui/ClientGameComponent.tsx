@@ -1,20 +1,25 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from '@/hooks/useAuth';
-import { ClientGameComponentProps } from '@/types/components';
-import { ServerEventBroadcast } from '@/types/socket';
+import type { ServerEventRequest, ServerEventBroadcast } from '@/types/socket';
+
+interface ClientGameComponentProps {
+	joinRoom: (data: ServerEventRequest) => unknown;
+	getRoomInfo: (data: ServerEventRequest) => unknown;
+	isConnected: boolean;
+}
 
 export function ClientGameButtons({
   joinRoom,
   getRoomInfo,
   isConnected,
 }: ClientGameComponentProps) {
-  const router = useRouter();
-  const { isAuthenticated, userProfile } = useAuth();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [roomId, setRoomId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,13 +54,13 @@ export function ClientGameButtons({
       // Try to join the room
       const joinResult = await joinRoom({ roomId: roomId.trim() }) as ServerEventBroadcast;
       if (joinResult.success) {
-        router.push(`/room/${roomId.trim()}`);
+        navigate(`/room/${roomId.trim()}`);
       } else {
 
         setError(joinResult.error || 'Failed to join room.');
       }
-    } catch (err) {
-      setError('Failed to join room. Please try again.');
+    } catch (err : unknown) {
+      setError((err as Error).message || 'An unexpected error occurred.');
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +72,7 @@ export function ClientGameButtons({
       return;
     }
     
-    router.push('/create');
+    navigate('/create');
   };
 
   return (

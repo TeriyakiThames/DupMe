@@ -1,5 +1,3 @@
-// components/GameHeader.tsx
-
 interface GameHeaderProps {
   title: string;
   subtitle: string;
