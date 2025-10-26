@@ -41,7 +41,6 @@ export interface ServerManagerOptions {
   maxRooms?: number; // Maximum concurrent rooms, default: 1000
 }
 
-
 // Client to server requests
 export interface ServerEventRequest {
   userProfile: UserProfile;

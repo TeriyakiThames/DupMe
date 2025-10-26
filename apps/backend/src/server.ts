@@ -1,30 +1,45 @@
 import express from "express";
-import cors from "cors";
+import cors, { CorsOptions} from "cors";
 import http from "http";
 import session from "express-session";
 import {  Server } from "socket.io";
 import { ServerManager } from "./managers/serverManager";
 import { SocketIOService } from "./io";
-// import swaggerUi from "swagger-ui-express";
-// import * as swaggerDocument from "./swagger.json";
 import dotenv from "dotenv";
 import { testConnection, initializeDatabase } from "./config/database";
 import apiRoutes from "./routes";
+import { corsMiddleware } from "./middleware/cors";
 
 // Load environment variables
 dotenv.config();
-// Not used yet
-const allowedOrigins = [ process.env.FRONTEND || 'http://localhost:3001',  'http://localhost:3000'];
 const app = express();
-app.use(cors({
-  origin: true,         
-  credentials: true,    
-}));
+// app.use(corsMiddleware);
 
-// app.options("*", cors({
-//   origin: true,
-//   credentials: true,
-// }));
+// Accept single or comma-separated FRONTEND env var
+const allowedOrigins = (process.env.FRONTEND || "")
+  .split(",")
+  .map(s => s.trim())
+  .filter(Boolean);
+
+console.log("ALLOWED ORIGINS:", allowedOrigins);
+
+const corsOptions : CorsOptions = {
+  origin: (origin, callback) => {
+    console.log("CORS check origin:", origin);
+
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Reject
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
+app.use(cors(corsOptions)); 
 
 const expressSession = session({
   secret: process.env.SESSION_SECRET || 'default-secret',
@@ -40,18 +55,7 @@ const expressSession = session({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(expressSession);
-app.use('/api', apiRoutes);
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "🚀 DupMe Backend API",
-    version: "1.0.0",
-    endpoints: {
-      api: "/api",
-    },
-    timestamp: new Date().toISOString(),
-  });
-});
+app.use('/', apiRoutes);
 
 const serverManager = new ServerManager({
 	cleanupInterval: '*/2 * * * *', // Every 2 minutes for more frequent cleanup
@@ -84,9 +88,7 @@ const startServer = async () => {
       console.log(`✅ Server running on port ${PORT}`);
       console.log(`🏠 Root endpoint: http://localhost:${PORT}/`);
       console.log(`🌐 API available at: http://localhost:${PORT}/api`);
-      // console.log(`📚 Documentation: http://localhost:${PORT}/docs`);
-      // console.log(`🔗 Frontend allowed origins: ${allowedOrigins.join(', ')}`);
-    
+
     });
   } catch (error) {
     console.error('Failed to start server:', error);

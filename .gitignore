@@ -54,3 +54,6 @@ build/
 
 # Vercel
 .vercel/
+
+# Local Netlify folder
+.netlify
